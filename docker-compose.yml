@@ -1,0 +1,150 @@
+#########################################
+#          DEFAULTS VARIABLES           #
+#########################################
+x-app-args: &default-args
+  USER_UID: ${USER_UID}
+  USER_GID: ${USER_GID}
+  USER_NAME: ${USER_NAME}
+  USER_PASSWORD: ${USER_PASSWORD}
+  ROOT_PASSWORD: ${ROOT_PASSWORD}
+
+
+services:
+  #########################################
+  #              MACHINE                  #
+  #########################################
+  workspace:
+    build:
+      context: ./
+      dockerfile: docker/workspace.Dockerfile
+      args:
+        <<: *default-args
+    container_name: workspace
+    restart: unless-stopped
+    hostname: workspace
+    volumes:
+      - app-data:${DESTINATION_DIR}:rw
+      - ./docker/ssh:/home/${USER_NAME}/.ssh:rw
+      - ./docker/scripts/workspace.entrypoint.sh:/entrypoint.sh:ro
+    command: /entrypoint.sh ${DEFAULT_PHP:-8.0}
+    working_dir: ${DESTINATION_DIR}
+    networks:
+      - docker_network
+
+  #########################################
+  #              NGINX                    #
+  #########################################
+  nginx:
+    build:
+      context: ./
+      dockerfile: docker/nginx.Dockerfile
+      args:
+        DESTINATION_DIR: ${DESTINATION_DIR}
+    container_name: nginx
+    restart: unless-stopped
+    volumes:
+      - app-data:${DESTINATION_DIR}:rw
+    working_dir: ${DESTINATION_DIR}
+    networks:
+      - docker_network
+    ports:
+      - "80:80"
+      - "443:443"
+
+  #########################################
+  #              PHP                      #
+  #########################################
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql:rw
+      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf:ro
+    tty: true
+    hostname: mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - docker_network
+
+  #########################################
+  #           PHPMYADMIN                  #
+  #########################################
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    networks:
+      - docker_network
+    depends_on:
+      - mysql
+
+  #########################################
+  #              REDIS                    #
+  #########################################
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data:rw
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server ${REDIS_ARGS:- }
+    ports:
+      - "6379:6379"
+    networks:
+      - docker_network
+    hostname: redis
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+
+#########################################
+#              NETWORKS                 #
+#########################################
+networks:
+  docker_network:
+    external: false
+    driver: bridge
+
+#########################################
+#              VOLUMES                  #
+#########################################
+volumes:
+  # APP DATA VOLUME
+  app-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${APP_DIR}
+
+  # REDIS DATA VOLUME
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${REDIS_DATA_DIR}
+
+  # MYSQL DATA VOLUME
+  mysql-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MYSQL_DATA_DIR}
+

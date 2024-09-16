@@ -1,0 +1,9 @@
+# sites
+sites:
+  - map: app1.local
+    to: app1/public
+    php: "8.0"
+
+  - map: app2.local
+    to: app2/public
+    php: "8.0"
