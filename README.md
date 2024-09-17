@@ -30,8 +30,8 @@ This project sets up a Dockerized PHP development environment with multiple PHP 
 1. **Clone the repository:**
 
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/alizaynoune/Laravel-Docker-DevEnv.git
+    cd Laravel-Docker-DevEnv
     ```
 
 2. **Create and configure the `.env` file:**
