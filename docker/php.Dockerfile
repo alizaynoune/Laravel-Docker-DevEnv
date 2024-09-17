@@ -83,6 +83,11 @@ RUN ssh-keygen -A
 RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && \
     echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
 
+
+# Create a directory for misc storage and set ownership
+RUN mkdir -p /home/misc-storage && \
+    chown -R ${USER_UID}:${USER_GID} /home/misc-storage
+
 # Copy the supervisord configuration
 COPY /docker/supervisor/supervisord.conf /etc/supervisord.conf
 

@@ -43,8 +43,11 @@ This project sets up a Dockerized PHP development environment with multiple PHP 
     ```
 3. **Add your sites to the `sitesMap.yaml` file:**
 
-    The `sitesMap.yaml` file contains a list of sites that will be mapped to the PHP services. Each site can specify a different PHP version.
+    Copy the `sitesMap.example.yaml` to `sitesMap.yaml` and adjust the entries as needed.
 
+    ```sh
+    cp sitesMap.example.yaml sitesMap.yaml
+    ```
     Example entry in `sitesMap.yaml`:
 
     ```yaml

@@ -1,4 +1,8 @@
+.idea
 .env
+sitesMap.yaml
 docker-compose.override.yml
 docker/db/mysql/data/*
+!docker/db/mysql/data/.gitkeep
 docker/db/redis/data/*
+!docker/db/redis/data/.gitkeep

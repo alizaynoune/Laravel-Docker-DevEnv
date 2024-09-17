@@ -45,6 +45,7 @@ services:
     volumes:
       - app-data:${DESTINATION_DIR}:rw
     working_dir: ${DESTINATION_DIR}
+    entrypoint: /bin/sh -c "nginx -g 'daemon off;'"
     networks:
       - docker_network
     ports:
