@@ -15,6 +15,11 @@ if [ ! -f "$SITES_MAP_FILE" ]; then
   exit 1
 fi
 
+# remove the docker-compose.override.yml file if it exists
+if [ -f "$DOCKER_COMPOSE_FILE" ]; then
+  rm "$DOCKER_COMPOSE_FILE"
+fi
+
 echo "Generating docker-compose.override.yml file..."
 echo "" > "$DOCKER_COMPOSE_FILE"
 
@@ -102,6 +107,8 @@ add_php_service() {
             print "                PHP_VERSION: \"" php_version "\"";
             print "        container_name: " service_name;
             print "        hostname: " service_name;
+            print "        depends_on:";
+            print "            - workspace";
             next
         }
         { print }

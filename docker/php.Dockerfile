@@ -32,7 +32,8 @@ RUN apk update && apk --no-cache add --update \
     gcc \
     linux-headers \
     icu-libs \
-    icu-dev
+    icu-dev \
+    openrc
 
 # Install PHP extensions
 RUN docker-php-ext-install \
@@ -70,6 +71,9 @@ ARG USER_NAME
 ARG USER_PASSWORD
 ARG ROOT_PASSWORD
 
+# Install laravel installer
+RUN composer global require laravel/installer
+
 # Create user '${USER_NAME}' with sudo privileges
 RUN adduser -D -h /home/${USER_NAME} -s /bin/bash -G root -u ${USER_UID} ${USER_NAME} && \
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && \
@@ -81,7 +85,8 @@ RUN ssh-keygen -A
 
 # Configure SSH
 RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && \
-    echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
+    echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config && \
+    echo 'PubkeyAuthentication yes' >> /etc/ssh/sshd_config
 
 
 # Create a directory for misc storage and set ownership
@@ -99,6 +104,9 @@ USER ${USER_NAME}
 
 # Install Oh My Zsh
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Install laravel installer
+RUN composer global require laravel/installer
 
 # zshrc configuration
 COPY /docker/zsh/php/zshrc /home/${USER_NAME}/.zshrc

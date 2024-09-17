@@ -110,7 +110,15 @@ function php() {
    if [[ "$1" =~ ([0-9]+) ]]; then
        # if argument more than 1, remove the first argument
        if [ $# -gt 1 ]; then
-            PHP_VERSION=$1
+            # if command is artisan, composer, or laravel
+            if [[ "$2" =~ ^(artisan|composer|laravel)$ ]]; then
+                PHP_VERSION="$1"
+                COMMAND="$2"
+                shift 2
+                $COMMAND $PHP_VERSION $@
+                return
+            fi
+            PHP_VERSION="php$1"
             shift
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$PHP_VERSION "cd $PWD; exec /usr/local/bin/php $@"
        else
@@ -123,11 +131,33 @@ function php() {
 }
 
 function artisan() {
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec /usr/local/bin/php artisan $@"
+    if [[ "$1" =~ ([0-9]+) ]]; then
+        CURRENT_PHP="php$1"
+        shift
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec /usr/local/bin/php artisan $@"
+    else
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec /usr/local/bin/php artisan $@"
+    fi
 }
 
 function composer() {
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec composer $@"
+    if [[ "$1" =~ ([0-9]+) ]]; then
+        CURRENT_PHP="php$1"
+        shift
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec composer $@"
+    else
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec composer $@"
+    fi
+}
+
+function laravel() {
+    if [[ "$1" =~ ([0-9]+) ]]; then
+        CURRENT_PHP="php$1"
+        shift
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec $HOME/.composer/vendor/bin/laravel $@"
+    else
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec $HOME/.composer/vendor/bin/laravel $@"
+    fi
 }
 
 alias art=artisan
