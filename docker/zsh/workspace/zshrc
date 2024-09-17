@@ -132,7 +132,7 @@ function php() {
 
 function artisan() {
     if [[ "$1" =~ ([0-9]+) ]]; then
-        CURRENT_PHP="php$1"
+        PHP_VERSION="php$1"
         shift
         ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec /usr/local/bin/php artisan $@"
     else
@@ -142,7 +142,7 @@ function artisan() {
 
 function composer() {
     if [[ "$1" =~ ([0-9]+) ]]; then
-        CURRENT_PHP="php$1"
+        PHP_VERSION="php$1"
         shift
         ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec composer $@"
     else
@@ -152,7 +152,7 @@ function composer() {
 
 function laravel() {
     if [[ "$1" =~ ([0-9]+) ]]; then
-        CURRENT_PHP="php$1"
+        PHP_VERSION="php$1"
         shift
         ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t {ssh_user}@$CURRENT_PHP "cd $PWD; exec $HOME/.composer/vendor/bin/laravel $@"
     else
