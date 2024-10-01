@@ -2,10 +2,10 @@ ARG PHP_VERSION="8.3"
 
 FROM php:${PHP_VERSION}-fpm-alpine
 
-RUN apk add --no-cache icu-libs icu-dev \
-    && docker-php-ext-install intl
 # Install dependencies
 RUN apk update && apk --no-cache add --update \
+    icu-libs \
+    icu-dev \
     build-base \
     libpng-dev \
     libjpeg-turbo-dev \
@@ -39,6 +39,7 @@ RUN apk update && apk --no-cache add --update \
 RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
+    mysqli \
     zip \
     exif \
     pcntl \
