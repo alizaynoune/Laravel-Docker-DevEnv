@@ -2,41 +2,43 @@ ARG PHP_VERSION="8.3"
 
 FROM php:${PHP_VERSION}-fpm-alpine
 
-# Install dependencies
-RUN apk update && apk --no-cache add --update \
-    icu-libs \
+# Install build dependencies
+RUN apk update && apk --no-cache add \
     icu-dev \
-    build-base \
     libpng-dev \
     libjpeg-turbo-dev \
+    libwebp-dev \
+    libxpm-dev \
     freetype-dev \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
-    unzip \
-    git \
-    curl \
     libzip-dev \
-    zsh \
-    wget \
-    openssh-server \
-    supervisor \
-    sshpass \
-    openssh-client \
-    iputils \
-    sudo \
-    bash \
+    bzip2-dev \
+    oniguruma-dev \
     autoconf \
     make \
     g++ \
     gcc \
     linux-headers \
-    icu-libs \
-    icu-dev \
-    openrc
+    libtool \
+    vim \
+    unzip \
+    git \
+    curl \
+    zsh \
+    wget \
+    openssh-server \
+    supervisor \
+    bash \
+    sudo
+
+# Extract PHP source
+RUN docker-php-source extract
 
 # Install PHP extensions
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp && \
+    docker-php-ext-install \
     pdo \
     pdo_mysql \
     mysqli \
@@ -47,13 +49,27 @@ RUN docker-php-ext-install \
     gd \
     intl
 
+# Update the PECL channel and install extensions
+RUN apk add --no-cache autoconf && \
+    pecl channel-update pecl.php.net && \
+    if [ "$(echo ${PHP_VERSION} | sed -E 's/^([0-9]+)\.([0-9]+).*/\1\2/')" -ge 80 ]; then \
+    pecl install xdebug redis && \
+    docker-php-ext-enable xdebug redis; \
+fi
+
+# Clean up after installation
+RUN docker-php-source delete && \
+    apk del autoconf make g++ gcc linux-headers libtool && \
+    rm -rf /var/cache/apk/*
+
+# Install gnu-libiconv for Alpine compatibility
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.13/community/ gnu-libiconv=1.15-r3
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
-# Install xdebug and redis if php version is greater than 8.0
-RUN if [ $(echo ${PHP_VERSION} | sed -E 's/^([0-9]+)\.([0-9]+).*/\1\2/') -ge 80 ]; then \
+# Install xdebug and redis if PHP version is >= 8.0
+RUN if [ "$(echo ${PHP_VERSION} | sed -E 's/^([0-9]+)\.([0-9]+).*/\1\2/')" -ge 80 ]; then \
     pecl install xdebug redis && \
-    docker-php-ext-enable xdebug redis.so; \
+    docker-php-ext-enable xdebug redis; \
 fi
 
 # Set the PATH environment variable
@@ -65,52 +81,36 @@ COPY /docker/php/php.ini /usr/local/etc/php/php.ini
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# user configuration
+# User configuration
 ARG USER_UID
 ARG USER_GID
 ARG USER_NAME
 ARG USER_PASSWORD
 ARG ROOT_PASSWORD
 
-# Install laravel installer
-RUN composer global require laravel/installer
-
 # Create user '${USER_NAME}' with sudo privileges
-RUN adduser -D -h /home/${USER_NAME} -s /bin/bash -G root -u ${USER_UID} ${USER_NAME} && \
+RUN adduser -D -h /home/${USER_NAME} -s /bin/bash -u ${USER_UID} ${USER_NAME} && \
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && \
     echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     echo "root:${ROOT_PASSWORD}" | chpasswd
 
-# Generate SSH host keys
-RUN ssh-keygen -A
-
-# Configure SSH
-RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && \
+# Set up SSH
+RUN ssh-keygen -A && \
+    echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && \
     echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config && \
     echo 'PubkeyAuthentication yes' >> /etc/ssh/sshd_config
 
-
-# Create a directory for misc storage and set ownership
-RUN mkdir -p /home/misc-storage && \
-    chown -R ${USER_UID}:${USER_GID} /home/misc-storage
-
-# Copy the supervisord configuration
+# Configure Supervisor
 COPY /docker/supervisor/supervisord.conf /etc/supervisord.conf
-
-# Configure Supervisor if the directory exists
 RUN DIR_NAME=$(echo ${PHP_VERSION} | sed -E 's/^([0-9]+)\.([0-9]+).*/\1\2/') && \
     sed -i "s/files =.*/files = \/etc\/supervisor\/conf.d\/php${DIR_NAME}\/\*.conf/g" /etc/supervisord.conf
 
-USER ${USER_NAME}
-
 # Install Oh My Zsh
+USER ${USER_NAME}
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
-# Install laravel installer
-RUN composer global require laravel/installer
-
-# zshrc configuration
+# Copy zsh configuration
 COPY /docker/zsh/php/zshrc /home/${USER_NAME}/.zshrc
 
-# Expose port 9000 for PHP-FPM, 22 for SSH, and 6001 for websockets
+# Expose necessary ports
 EXPOSE 9000 22 6001
