@@ -1,5 +1,5 @@
 #########################################
-# Makefile for setup docker container		#
+# Makefile for setup docker container	#
 #########################################
 
 # Variables
@@ -11,7 +11,7 @@ DOCKER=docker
 SCRIPTS_GENERATE_PHP_CONTAINERS = scripts/docker-compose-generator.sh
 
 USER_NAME = $(shell grep USER_NAME .env | cut -d '=' -f 2)
-NETWORK_NAME = docker_network
+NETWORK_NAME = laravel-docker-devenv-network
 
 # Colors
 DEFAULT	= \033[1;0m
@@ -79,7 +79,8 @@ clean:
 	@$(DOCKER) network rm $(NETWORK_NAME) || true
 	@rm -f $(COMPOSE_OVERRIDE)
 
-re: down up
+re: clean
+	@$(MAKE) up
 
 %:
 	@:

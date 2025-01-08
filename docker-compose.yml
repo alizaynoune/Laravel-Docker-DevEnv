@@ -29,7 +29,7 @@ services:
     command: /entrypoint.sh ${DEFAULT_PHP:-8.0}
     working_dir: ${DESTINATION_DIR}
     networks:
-      - docker_network
+      - laravel-docker-devenv-network
 
   #########################################
   #              NGINX                    #
@@ -47,7 +47,7 @@ services:
     working_dir: ${DESTINATION_DIR}
     entrypoint: /bin/sh -c "nginx -g 'daemon off;'"
     networks:
-      - docker_network
+      - laravel-docker-devenv-network
     ports:
       - "80:80"
       - "443:443"
@@ -74,7 +74,7 @@ services:
     ports:
       - "3306:3306"
     networks:
-      - docker_network
+      - laravel-docker-devenv-network
 
   #########################################
   #           PHPMYADMIN                  #
@@ -88,7 +88,7 @@ services:
       PMA_PORT: 3306
       PMA_ARBITRARY: 1
     networks:
-      - docker_network
+      - laravel-docker-devenv-network
     depends_on:
       - mysql
 
@@ -106,7 +106,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - docker_network
+      - laravel-docker-devenv-network
     hostname: redis
     deploy:
       resources:
@@ -117,8 +117,8 @@ services:
 #              NETWORKS                 #
 #########################################
 networks:
-  docker_network:
-    external: false
+  laravel-docker-devenv-network:
+    external: true
     driver: bridge
 
 #########################################

@@ -46,7 +46,7 @@ awk '
     print "    - ./docker/scripts/php.entrypoint.sh:/entrypoint.sh:ro"
     print "  command: /entrypoint.sh"
     print "  networks:"
-    print "    - docker_network"
+    print "    - laravel-docker-devenv-network"
     print "  tty: true"
     print "  restart: unless-stopped"
     print "  working_dir: ${DESTINATION_DIR}"
