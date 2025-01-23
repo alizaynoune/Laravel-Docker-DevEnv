@@ -66,12 +66,6 @@ RUN docker-php-source delete && \
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.13/community/ gnu-libiconv=1.15-r3
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
-# Install xdebug and redis if PHP version is >= 8.0
-RUN if [ "$(echo ${PHP_VERSION} | sed -E 's/^([0-9]+)\.([0-9]+).*/\1\2/')" -ge 80 ]; then \
-    pecl install xdebug redis && \
-    docker-php-ext-enable xdebug redis; \
-fi
-
 # Set the PATH environment variable
 ENV PATH="/usr/local/bin:${PATH}"
 
