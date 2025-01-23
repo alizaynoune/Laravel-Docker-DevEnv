@@ -21,7 +21,6 @@ if [ -f "$DOCKER_COMPOSE_FILE" ]; then
 fi
 
 echo "Generating docker-compose.override.yml file..."
-echo "" > "$DOCKER_COMPOSE_FILE"
 
 awk '
   BEGIN {
@@ -47,6 +46,17 @@ awk '
     print "  command: /entrypoint.sh"
     print "  networks:"
     print "    - laravel-docker-devenv-network"
+    print "  extra_hosts:"
+  }
+' > "$DOCKER_COMPOSE_FILE"
+
+    #loop through the hosts and add them to the docker-compose.override.yml file
+    yq -r '.sites[] | .map' "$SITES_MAP_FILE" | while IFS= read -r line; do
+      echo "    - $line:172.19.0.30" >> "$DOCKER_COMPOSE_FILE"
+    done
+
+awk '
+  BEGIN {
     print "  tty: true"
     print "  restart: unless-stopped"
     print "  working_dir: ${DESTINATION_DIR}"
@@ -70,7 +80,7 @@ awk '
     print "########################################################################"
     print "services:"
   }
-' > "$DOCKER_COMPOSE_FILE"
+' >> "$DOCKER_COMPOSE_FILE"
 
 add_php_service() {
   PHP_VERSION=$1

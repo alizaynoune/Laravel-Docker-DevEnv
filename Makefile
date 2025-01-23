@@ -79,7 +79,7 @@ clean:
 	@$(DOCKER) network rm $(NETWORK_NAME) || true
 	@rm -f $(COMPOSE_OVERRIDE)
 
-re: clean
+re: down
 	@$(MAKE) up
 
 %:

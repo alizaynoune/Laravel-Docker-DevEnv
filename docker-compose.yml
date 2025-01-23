@@ -46,8 +46,11 @@ services:
       - app-data:${DESTINATION_DIR}:rw
     working_dir: ${DESTINATION_DIR}
     entrypoint: /bin/sh -c "nginx -g 'daemon off;'"
+    hostname: nginx
     networks:
-      - laravel-docker-devenv-network
+      laravel-docker-devenv-network:
+        ipv4_address: 172.19.0.30
+
     ports:
       - "80:80"
       - "443:443"
@@ -118,8 +121,12 @@ services:
 #########################################
 networks:
   laravel-docker-devenv-network:
-    external: true
+    external: false
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16  # Define a subnet here
 
 #########################################
 #              VOLUMES                  #
