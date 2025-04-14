@@ -1,9 +1,40 @@
-# sites
+#########################################
+# Laravel Docker Development Environment 
+# Site Configuration Example
+#########################################
+#
+# This file defines the sites that will be served by nginx.
+# Each site entry must include:
+#  - map: The domain name to access the site (add to your hosts file)
+#  - to: The path to the site's public directory relative to APP_DIR
+#  - php: The PHP version to use for this site
+#
+# You need to add the domains to your hosts file:
+# Example: 127.0.0.1 app1.local app2.local
+#
+#########################################
+
 sites:
+  # Basic Laravel application example
   - map: app1.local
     to: app1/public
     php: "8.0"
-
+    
+  # Laravel application with PHP 8.1
   - map: app2.local
     to: app2/public
     php: "8.1"
+    
+  # Non-Laravel PHP application example
+  - map: php-app.local
+    to: php-app
+    php: "7.4"
+    
+  # Multiple domains for the same application
+  - map: myapp.local
+    to: myapp/public
+    php: "8.0"
+  
+  - map: www.myapp.local
+    to: myapp/public
+    php: "8.0"

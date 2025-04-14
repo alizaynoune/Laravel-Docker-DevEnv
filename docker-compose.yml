@@ -1,6 +1,6 @@
-#########################################
-#          DEFAULTS VARIABLES           #
-#########################################
+########################################################################
+#                      SHARED CONFIGURATION                            #
+########################################################################
 x-app-args: &default-args
   USER_UID: ${USER_UID}
   USER_GID: ${USER_GID}
@@ -8,11 +8,10 @@ x-app-args: &default-args
   USER_PASSWORD: ${USER_PASSWORD}
   ROOT_PASSWORD: ${ROOT_PASSWORD}
 
-
 services:
-  #########################################
-  #              MACHINE                  #
-  #########################################
+  ########################################################################
+  #                      WORKSPACE CONTAINER                             #
+  ########################################################################
   workspace:
     build:
       context: ./
@@ -30,10 +29,18 @@ services:
     working_dir: ${DESTINATION_DIR}
     networks:
       - laravel-docker-devenv-network
+    environment:
+      - XDEBUG_HOST=host.docker.internal
+      - XDEBUG_REMOTE_PORT=9003
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "sshd"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  #########################################
-  #              NGINX                    #
-  #########################################
+  ########################################################################
+  #                      NGINX WEB SERVER                               #
+  ########################################################################
   nginx:
     build:
       context: ./
@@ -44,20 +51,27 @@ services:
     restart: unless-stopped
     volumes:
       - app-data:${DESTINATION_DIR}:rw
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     working_dir: ${DESTINATION_DIR}
-    entrypoint: /bin/sh -c "nginx -g 'daemon off;'"
+    entrypoint: ["/bin/sh", "-c", "nginx -g 'daemon off;'"]
     hostname: nginx
     networks:
       laravel-docker-devenv-network:
         ipv4_address: 172.19.0.30
-
     ports:
       - "80:80"
       - "443:443"
+    depends_on:
+      - workspace
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  #########################################
-  #              PHP                      #
-  #########################################
+  ########################################################################
+  #                      MYSQL DATABASE                                 #
+  ########################################################################
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -69,6 +83,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USERNAME}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ:-UTC}
     volumes:
       - mysql-data:/var/lib/mysql:rw
       - ./docker/mysql/my.cnf:/etc/mysql/my.cnf:ro
@@ -78,26 +93,35 @@ services:
       - "3306:3306"
     networks:
       - laravel-docker-devenv-network
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  #########################################
-  #           PHPMYADMIN                  #
-  #########################################
+  ########################################################################
+  #                      PHPMYADMIN                                     #
+  ########################################################################
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
+    image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
     restart: unless-stopped
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
       PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 300M
+    ports:
+      - "8080:80"
     networks:
       - laravel-docker-devenv-network
     depends_on:
       - mysql
 
-  #########################################
-  #              REDIS                    #
-  #########################################
+  ########################################################################
+  #                      REDIS                                          #
+  ########################################################################
   redis:
     image: redis:alpine
     container_name: redis
@@ -115,24 +139,28 @@ services:
       resources:
         limits:
           cpus: "2"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-#########################################
-#              NETWORKS                 #
-#########################################
+########################################################################
+#                      NETWORKS                                        #
+########################################################################
 networks:
   laravel-docker-devenv-network:
-    external: false
     driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: 172.19.0.0/16  # Define a subnet here
+        - subnet: 172.19.0.0/16
 
-#########################################
-#              VOLUMES                  #
-#########################################
+########################################################################
+#                      VOLUMES                                         #
+########################################################################
 volumes:
-  # APP DATA VOLUME
+  # Application data volume
   app-data:
     driver: local
     driver_opts:
@@ -140,7 +168,7 @@ volumes:
       o: bind
       device: ${APP_DIR}
 
-  # REDIS DATA VOLUME
+  # Redis data volume
   redis-data:
     driver: local
     driver_opts:
@@ -148,7 +176,7 @@ volumes:
       o: bind
       device: ${REDIS_DATA_DIR}
 
-  # MYSQL DATA VOLUME
+  # MySQL data volume
   mysql-data:
     driver: local
     driver_opts:

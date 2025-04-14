@@ -1,141 +1,217 @@
 # Laravel Docker Development Environment
 
-This project sets up a Dockerized PHP development environment with multiple PHP versions, Redis, and MySQL, all managed through docker-compose and environment variables. It's designed to streamline Laravel development by providing a flexible, scalable, and easy-to-use setup.
+<div align="center">
+  <img src="https://img.shields.io/badge/PHP-8.x-blue" alt="PHP Versions"/>
+  <img src="https://img.shields.io/badge/MySQL-8.0-orange" alt="MySQL"/>
+  <img src="https://img.shields.io/badge/Nginx-Latest-green" alt="Nginx"/>
+  <img src="https://img.shields.io/badge/Redis-Alpine-red" alt="Redis"/>
+  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License"/>
+</div>
+
+A professional, feature-rich Docker environment for Laravel development with support for multiple PHP versions, MySQL, Redis, Nginx, and more. Designed for seamless local development with flexibility and ease of use.
 
 ## Features
 
-- **Multiple PHP Versions:** Easily switch between PHP versions for different projects.
-- **MySQL and Redis:** Pre-configured services to support database and caching requirements.
-- **Supervisor Support:** Automatically manage long-running processes like Laravel WebSockets.
-- **SSH Access:** Secure access to containers for development and debugging.
-- **Nginx Support:** Configured for serving Laravel applications.
+- **Multi-PHP Support**: Run different PHP versions (7.4, 8.0, 8.1, 8.2) simultaneously for different projects
+- **Nginx Web Server**: Configured for Laravel with custom domain support
+- **MySQL Database**: Pre-configured MySQL 8.0 with phpMyAdmin
+- **Redis Cache**: Alpine-based Redis for high performance
+- **Workspace Container**: For running Composer, Artisan, and other CLI commands
+- **Automatic Configuration**: Dynamic generation of Docker configurations
+- **Supervisor Integration**: Manage background processes easily
+- **SSH Access**: Secure shell access to containers
+- **Flexible Architecture**: Easily extendable for custom requirements
 
-## Services
+## System Requirements
 
-- **PHP:** Multiple PHP versions (7.4, 8.0, 8.1) with Composer and Xdebug.
-- **Nginx:** Web server for serving Laravel applications.
-- **MySQL:** Database service for storing application data.
-- **Redis:** In-memory data structure store for caching.
-- **workspace:** Container for running Composer and Artisan commands.
-
-## Prerequisites
-
-- Docker
-- Docker Compose
+- Docker Engine 20.10+
+- Docker Compose 2.0+
 - Make
-- `yq` (for parsing YAML files)
+- `yq` for YAML processing
 
-## Setup
+## Quick Start
 
-1. **Clone the repository:**
+### 1. Clone the Repository
 
-    ```sh
-    git clone https://github.com/alizaynoune/Laravel-Docker-DevEnv.git
-    cd Laravel-Docker-DevEnv
-    ```
+```bash
+git clone https://github.com/yourusername/Laravel-Docker-DevEnv.git
+cd Laravel-Docker-DevEnv
+```
 
-2. **Create and configure the `.env` file:**
+### 2. Run the Installation Command
 
-    Copy the `.env.example` to `.env` and adjust the variables as needed.
+```bash
+make install
+```
 
-    ```sh
-    cp env.example .env
-    ```
-3. **Add your sites to the `sitesMap.yaml` file:**
+This command:
+- Creates a `.env` file from `env.example`
+- Creates a `sitesMap.yaml` file from `sitesMap.example.yaml`
 
-    Copy the `sitesMap.example.yaml` to `sitesMap.yaml` and adjust the entries as needed.
+### 3. Configure Your Environment
 
-    ```sh
-    cp sitesMap.example.yaml sitesMap.yaml
-    ```
-    Example entry in `sitesMap.yaml`:
+Edit the `.env` file to set:
+- User details
+- Database credentials
+- Directory paths
+- PHP versions
 
-    ```yaml
-    - map: example.local
-      to: example-app/public
-      php: "8.0"
-   ```
-4. **Build and start the containers:**
+Edit the `sitesMap.yaml` to define your sites:
 
-    ```sh
-    make up
-    ```
+```yaml
+sites:
+  - map: myproject.local
+    to: myproject/public
+    php: "8.1"
+```
+
+### 4. Start the Environment
+
+```bash
+make up
+```
+
+### 5. Update Your Hosts File
+
+Add your site domains to your `/etc/hosts` file:
+
+```
+127.0.0.1 myproject.local
+```
+
+### 6. Access Your Projects
+
+- Web: `http://myproject.local`
+- phpMyAdmin: `http://localhost:8080`
 
 ## Configuration
 
 ### Environment Variables
 
-The `.env` file contains the following variables:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| USER_NAME | Username in containers | docker |
+| USER_UID | User ID in containers | 1000 |
+| USER_GID | Group ID in containers | 1000 |
+| MYSQL_DATABASE | Default database name | laravel |
+| APP_DIR | Path to your code on host | ~/Code |
+| DESTINATION_DIR | Mount path in containers | /var/www |
+| DEFAULT_PHP | Default PHP version | 8.0 |
 
-- **User Configuration:**
-  - `USER_NAME` <sub>(the user name for the container)</sub>
-  - `USER_PASSWORD` <sub>(the user password for the container)</sub>
-  - `USER_UID` <sub>(the user ID for the container)</sub>
-  - `USER_GID` <sub>(the user group ID for the container)</sub>
-  - `ROOT_PASSWORD`
+### Site Configuration
 
-- **MySQL Configuration:**
-  - `MYSQL_ROOT_PASSWORD` <sub>(the root password for MySQL)</sub>
-  - `MYSQL_DATABASE` <sub>(the default database name)</sub>
-  - `MYSQL_USERNAME` <sub>(the default username)</sub>
-  - `MYSQL_PASSWORD` <sub>(the default password)</sub>
+In `sitesMap.yaml`, configure sites with:
 
-- **Redis Configuration:**
-  - `REDIS_ARGS` <sub>(additional arguments for the Redis service)</sub>
-
-- **Directories:**
-  - `APP_DIR` <sub>(the application directory)</sub>
-  - `DESTINATION_DIR` <sub>(the destination directory in the container)</sub>
-  - `REDIS_DATA_DIR` <sub>(the Redis data directory)</sub>
-  - `MYSQL_DATA_DIR` <sub>(the MySQL data directory)</sub>
-
-- **Default PHP Version:**
-  - `DEFAULT_PHP` <sub>(the default PHP version for the workspace container)</sub>
-
-### Docker Compose Files
-
-- `docker-compose.yml`: Main Docker Compose configuration.
-- `docker-compose.override.yml`: This is where the PHP services are defined. (auto-generated), do not edit this file.
-
-### PHP Services
-
-The PHP services are configured based on the `sitesMap.yaml` file. Each site can specify a different PHP version.
-
-Example entry in `sitesMap.yaml`:
-
-```yaml
-- map: example.local
-  to: example-app/public
-  php: "8.0"
-```
+| Option | Description | Required |
+|--------|-------------|----------|
+| map | Domain name | Yes |
+| to | Application path relative to APP_DIR | Yes |
+| php | PHP version to use | Yes |
 
 ## Usage
 
-- **Make Commands:**
+### Common Commands
 
-    - `make up`: Build and start the containers.
-    - `make down`: Stop and remove the containers.
-    - `make restart`: Restart the containers.
-    - `make logs`: Show the container logs.
-    - `make exec`: Execute a command in the workspace container.
+| Command | Description |
+|---------|-------------|
+| `make up` | Start all containers |
+| `make down` | Stop and remove containers |
+| `make restart` | Restart all containers |
+| `make logs` | View container logs |
+| `make exec workspace` | Access workspace container shell |
+| `make status` | Show container status |
+| `make build` | Rebuild containers |
 
+### Working with PHP
 
-- **Workspace Container:**
+Access the workspace container to run PHP commands:
 
-    The workspace container is used for running Composer and Artisan commands.
+```bash
+make exec workspace
+```
 
-    ```sh
-    make exec workspace
-    ```
-   - **Run Commands:**
+From within the workspace container:
 
-        ```sh
-        composer install
-        php artisan migrate
-        php artisan db:seed
-        ```
-   - **Change PHP Version:**
+```bash
+# Create a Laravel project
+composer create-project laravel/laravel myproject
 
-        ```sh
-        php 80 # Switch to PHP 8.0
-        ```
+# Run artisan commands
+cd myproject
+php artisan migrate
+
+# Switch PHP version
+php74  # For PHP 7.4
+php80  # For PHP 8.0
+php81  # For PHP 8.1
+php82  # For PHP 8.2
+```
+
+### Database Access
+
+- **From Host**: Connect to MySQL at `localhost:3306`
+- **From Containers**: Connect to MySQL at `mysql:3306`
+- **Web Interface**: phpMyAdmin at `http://localhost:8080`
+
+### Redis Access
+
+- **From Host**: Connect to Redis at `localhost:6379`
+- **From Containers**: Connect to Redis at `redis:6379`
+
+## Directory Structure
+
+```
+Laravel-Docker-DevEnv/
+├── docker-compose.yml        # Main Docker Compose config
+├── docker-compose.override.yml # Auto-generated PHP services
+├── Makefile                  # Make commands for management
+├── env.example               # Environment variables template
+├── sitesMap.example.yaml     # Site configuration template
+├── docker/                   # Docker configurations
+│   ├── nginx/                # Nginx configurations
+│   ├── php/                  # PHP configurations
+│   ├── mysql/                # MySQL configurations
+│   └── redis/                # Redis configurations
+└── scripts/                  # Utility scripts
+```
+
+## Advanced Configuration
+
+### Custom PHP Extensions
+
+Edit the Dockerfile at `docker/php.Dockerfile` to add custom PHP extensions.
+
+### Custom Nginx Configuration
+
+Modify `docker/nginx/nginx.conf` for custom web server settings.
+
+### Supervisor Configuration
+
+Add supervisor config files to `docker/supervisor/conf.d/` for process management.
+
+## Troubleshooting
+
+### Permission Issues
+
+If you encounter permission issues, ensure your USER_UID and USER_GID in the .env file match your host user:
+
+```bash
+echo "USER_UID=$(id -u)" >> .env
+echo "USER_GID=$(id -g)" >> .env
+```
+
+### Container Access Issues
+
+To debug container access issues, check the container logs:
+
+```bash
+make logs nginx
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
