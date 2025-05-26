@@ -112,8 +112,6 @@ services:
       PMA_PORT: 3306
       PMA_ARBITRARY: 1
       UPLOAD_LIMIT: 300M
-    ports:
-      - "8080:80"
     networks:
       - laravel-docker-devenv-network
     depends_on:

@@ -34,7 +34,7 @@ A professional, feature-rich Docker environment for Laravel development with sup
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/Laravel-Docker-DevEnv.git
+git https://github.com/alizaynoune/Laravel-Docker-DevEnv.git
 cd Laravel-Docker-DevEnv
 ```
 
