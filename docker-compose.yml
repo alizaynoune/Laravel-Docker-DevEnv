@@ -86,7 +86,7 @@ services:
       TZ: ${TZ:-UTC}
     volumes:
       - mysql-data:/var/lib/mysql:rw
-      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf:ro
+      - ./docker/db/mysql/my.cnf:/etc/mysql/my.cnf:ro
     tty: true
     hostname: mysql
     ports:
@@ -128,7 +128,7 @@ services:
     restart: unless-stopped
     volumes:
       - redis-data:/data:rw
-      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./docker/db/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server ${REDIS_ARGS:- }
     ports:
       - "6379:6379"

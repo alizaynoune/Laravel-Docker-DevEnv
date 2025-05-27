@@ -196,8 +196,8 @@ Add supervisor config files to `docker/supervisor/conf.d/` for process managemen
 If you encounter permission issues, ensure your USER_UID and USER_GID in the .env file match your host user:
 
 ```bash
-echo "USER_UID=$(id -u)" >> .env
-echo "USER_GID=$(id -g)" >> .env
+sed -i "s/^USER_UID=.*/USER_UID=$(id -u)/" .env
+sed -i "s/^USER_GID=.*/USER_GID=$(id -g)/" .env
 ```
 
 ### Container Access Issues
