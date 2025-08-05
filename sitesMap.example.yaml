@@ -1,40 +1,79 @@
 #########################################
-# Laravel Docker Development Environment 
-# Site Configuration Example
+# Laravel Docker Development Environment
+# Site Configuration Example v2.0
 #########################################
 #
 # This file defines the sites that will be served by nginx.
 # Each site entry must include:
 #  - map: The domain name to access the site (add to your hosts file)
 #  - to: The path to the site's public directory relative to APP_DIR
-#  - php: The PHP version to use for this site
+#  - php: The PHP version to use for this site (7.0-8.3)
 #
-# You need to add the domains to your hosts file:
-# Example: 127.0.0.1 app1.local app2.local
+# Add these domains to your hosts file (/etc/hosts):
+# 127.0.0.1 laravel-app.local legacy-app.local api.local
 #
 #########################################
 
 sites:
-  # Basic Laravel application example
-  - map: app1.local
-    to: app1/public
-    php: "8.0"
-    
-  # Laravel application with PHP 8.1
-  - map: app2.local
-    to: app2/public
-    php: "8.1"
-    
-  # Non-Laravel PHP application example
-  - map: php-app.local
-    to: php-app
-    php: "7.4"
-    
-  # Multiple domains for the same application
-  - map: myapp.local
-    to: myapp/public
-    php: "8.0"
-  
-  - map: www.myapp.local
-    to: myapp/public
-    php: "8.0"
+    # Modern Laravel 10+ application with PHP 8.2
+    - map: laravel-app.local
+      to: laravel-app/public
+      php: "8.2"
+
+    # Legacy Laravel 5.x application with PHP 7.4
+    - map: legacy-app.local
+      to: legacy-laravel-app/public
+      php: "7.4"
+
+    # API-only Laravel application with PHP 8.3
+    - map: api.local
+      to: laravel-api/public
+      php: "8.3"
+
+    # WordPress or custom PHP application
+    - map: php-app.local
+      to: php-application
+      php: "8.1"
+
+    # Multiple domains for the same application
+    - map: myapp.local
+      to: myapp/public
+      php: "8.1"
+
+    - map: www.myapp.local
+      to: myapp/public
+      php: "8.1"
+
+    # Development version with different PHP
+    - map: myapp-dev.local
+      to: myapp/public
+      php: "8.3"
+
+    # Testing different PHP versions for compatibility
+    - map: compat-test.local
+      to: compatibility-test/public
+      php: "7.0"
+#########################################
+# Configuration Notes:
+#########################################
+#
+# 1. Domain Names (map):
+#    - Use .local domains for development
+#    - Must be added to your hosts file
+#    - Can have multiple entries for same app
+#
+# 2. Paths (to):
+#    - Relative to APP_DIR in .env file
+#    - For Laravel: usually "project/public"
+#    - For other PHP: just "project"
+#
+# 3. PHP Versions (php):
+#    - Available: 7.0, 7.1, 7.2, 7.3, 7.4
+#    - Available: 8.0, 8.1, 8.2, 8.3
+#    - Choose based on your project requirements
+#
+# 4. After making changes:
+#    - Run: make restart
+#    - Or: docker-compose restart nginx
+#
+#########################################

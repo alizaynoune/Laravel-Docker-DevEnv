@@ -1,12 +1,27 @@
 ########################################################################
+#                Laravel Docker Development Environment                 #
+########################################################################
+# A comprehensive Docker environment for Laravel development with      #
+# multi-PHP support, MySQL, Redis, Nginx, and development tools       #
+########################################################################
+
+########################################################################
 #                      SHARED CONFIGURATION                            #
 ########################################################################
 x-app-args: &default-args
-  USER_UID: ${USER_UID}
-  USER_GID: ${USER_GID}
-  USER_NAME: ${USER_NAME}
-  USER_PASSWORD: ${USER_PASSWORD}
-  ROOT_PASSWORD: ${ROOT_PASSWORD}
+  USER_NAME: ${USER_NAME:-docker}
+  USER_PASSWORD: ${USER_PASSWORD:-docker}
+  ROOT_PASSWORD: ${ROOT_PASSWORD:-root}
+  USER_GID: ${USER_GID:-1000}
+  USER_UID: ${USER_UID:-1000}
+
+x-common-volumes: &common-volumes
+  - app-data:${DESTINATION_DIR}:rw
+  - ./sitesMap.yaml:/etc/nginx/sitesMap.yaml:ro
+
+x-network: &default-network
+  networks:
+    - laravel-docker-devenv-network
 
 services:
   ########################################################################
@@ -23,125 +38,22 @@ services:
     hostname: workspace
     volumes:
       - app-data:${DESTINATION_DIR}:rw
-      - ./docker/ssh:/home/${USER_NAME}/.ssh:rw
+      - ./docker/supervisor/conf.d:/etc/supervisor/conf.d:rw
       - ./docker/scripts/workspace.entrypoint.sh:/entrypoint.sh:ro
-    command: /entrypoint.sh ${DEFAULT_PHP:-8.0}
     working_dir: ${DESTINATION_DIR}
-    networks:
-      - laravel-docker-devenv-network
+    <<: *default-network
     environment:
-      - XDEBUG_HOST=host.docker.internal
-      - XDEBUG_REMOTE_PORT=9003
-    healthcheck:
-      test: ["CMD", "ps", "aux", "|", "grep", "sshd"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  ########################################################################
-  #                      NGINX WEB SERVER                               #
-  ########################################################################
-  nginx:
-    build:
-      context: ./
-      dockerfile: docker/nginx.Dockerfile
-      args:
-        DESTINATION_DIR: ${DESTINATION_DIR}
-    container_name: nginx
-    restart: unless-stopped
-    volumes:
-      - app-data:${DESTINATION_DIR}:rw
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    working_dir: ${DESTINATION_DIR}
-    entrypoint: ["/bin/sh", "-c", "nginx -g 'daemon off;'"]
-    hostname: nginx
-    networks:
-      laravel-docker-devenv-network:
-        ipv4_address: 172.19.0.30
+      - TZ=${TZ}
     ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - workspace
+      - "2222:22"  # SSH access to workspace
+      - "80:80"    # HTTP
+      - "443:443"  # HTTPS
     healthcheck:
-      test: ["CMD", "nginx", "-t"]
+      test: ["CMD", "php", "--version"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-  ########################################################################
-  #                      MYSQL DATABASE                                 #
-  ########################################################################
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USERNAME}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      TZ: ${TZ:-UTC}
-    volumes:
-      - mysql-data:/var/lib/mysql:rw
-      - ./docker/db/mysql/my.cnf:/etc/mysql/my.cnf:ro
-    tty: true
-    hostname: mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - laravel-docker-devenv-network
-    command: --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  ########################################################################
-  #                      PHPMYADMIN                                     #
-  ########################################################################
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: phpmyadmin
-    restart: unless-stopped
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-      UPLOAD_LIMIT: 300M
-    networks:
-      - laravel-docker-devenv-network
-    depends_on:
-      - mysql
-
-  ########################################################################
-  #                      REDIS                                          #
-  ########################################################################
-  redis:
-    image: redis:alpine
-    container_name: redis
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data:rw
-      - ./docker/db/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    command: redis-server ${REDIS_ARGS:- }
-    ports:
-      - "6379:6379"
-    networks:
-      - laravel-docker-devenv-network
-    hostname: redis
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      start_period: 60s
 
 ########################################################################
 #                      NETWORKS                                        #
@@ -152,7 +64,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.19.0.0/16
+        - subnet: ${NETWORK_SUBNET:-"172.19.0.0/16"}
 
 ########################################################################
 #                      VOLUMES                                         #
@@ -165,20 +77,3 @@ volumes:
       type: none
       o: bind
       device: ${APP_DIR}
-
-  # Redis data volume
-  redis-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${REDIS_DATA_DIR}
-
-  # MySQL data volume
-  mysql-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${MYSQL_DATA_DIR}
-
