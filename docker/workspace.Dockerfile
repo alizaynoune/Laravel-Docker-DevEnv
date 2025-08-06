@@ -13,7 +13,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_CACHE_DIR=/tmp/composer \
-    PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+    USER_NAME=${USER_NAME:-docker} \
+    USER_UID=${USER_UID:-1000} \
+    USER_GID=${USER_GID:-1000}
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -210,20 +213,13 @@ COPY docker/scripts/workspace.entrypoint.sh /entrypoint.sh
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/scripts/generate-sites.sh /usr/local/bin/generate-sites.sh
 
-# Copy PHP pool configuration script
-COPY docker/scripts/configure-php-pools.sh /usr/local/bin/configure-php-pools.sh
-COPY docker/scripts/php-manager.sh /usr/local/bin/php-manager.sh
-
 # Set proper permissions
 RUN chown ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
     chmod +x /entrypoint.sh && \
-    chmod +x /usr/local/bin/generate-sites.sh && \
-    chmod +x /usr/local/bin/configure-php-pools.sh && \
-    chmod +x /usr/local/bin/php-manager.sh
+    chmod +x /usr/local/bin/generate-sites.sh
 
-# Set default user
-# This ensures that the container runs as the specified user by default
-# USER ${USER_NAME}
+# Set USER and www-data on one group
+RUN usermod -aG www-data ${USER_NAME}
 
 # Expose SSH, HTTP and HTTPS ports
 EXPOSE 22 80 443
@@ -242,4 +238,3 @@ LABEL maintainer="Laravel Docker DevEnv" \
 
 # Start supervisor
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

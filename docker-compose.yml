@@ -44,6 +44,9 @@ services:
     <<: *default-network
     environment:
       - TZ=${TZ}
+      - USER_NAME=${USER_NAME:-docker}
+      - USER_UID=${USER_UID:-1000}
+      - USER_GID=${USER_GID:-1000}
     ports:
       - "2222:22"  # SSH access to workspace
       - "80:80"    # HTTP
