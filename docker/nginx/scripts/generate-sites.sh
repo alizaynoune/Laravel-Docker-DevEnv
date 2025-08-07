@@ -260,6 +260,15 @@ EOF
         
         # Enable the site
         ln -sf "$SITE_CONFIG" "$SITES_ENABLED_DIR/"
+        # add site to hosts file if not already present
+        if ! grep -q "$SITE_MAP" /etc/hosts; then
+            CONTAINER_IP=$(hostname -i | awk '{print $1}')
+            log "Adding $SITE_MAP to /etc/hosts with IP $CONTAINER_IP"
+            echo "$CONTAINER_IP $SITE_MAP" >> /etc/hosts
+            success "Added $SITE_MAP to /etc/hosts"
+        else
+            log "$SITE_MAP already exists in /etc/hosts"
+        fi
         success "Site $SITE_MAP configured successfully"
     done
     

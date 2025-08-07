@@ -10,6 +10,7 @@
 ########################################################################
 x-app-args: &default-args
   USER_NAME: ${USER_NAME:-docker}
+  USER_GROUP: ${USER_GROUP:-docker}
   USER_PASSWORD: ${USER_PASSWORD:-docker}
   ROOT_PASSWORD: ${ROOT_PASSWORD:-root}
   USER_GID: ${USER_GID:-1000}

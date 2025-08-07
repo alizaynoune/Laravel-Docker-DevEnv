@@ -3,6 +3,7 @@ FROM ubuntu:22.04
 
 # Build arguments with defaults
 ARG USER_NAME
+ARG USER_GROUP
 ARG USER_PASSWORD
 ARG ROOT_PASSWORD
 ARG USER_GID
@@ -109,11 +110,16 @@ RUN npm install -g yarn
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Create user with sudo privileges (using default UID/GID)
-RUN groupadd -g ${USER_GID} ${USER_NAME} && \
+RUN groupadd -g ${USER_GID} ${USER_GROUP} && \
     useradd -u ${USER_UID} -g ${USER_GID} -m -s /bin/zsh ${USER_NAME} && \
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && \
     echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     echo "root:${ROOT_PASSWORD}" | chpasswd
+
+# Set user and www-data on one group
+# RUN usermod -aG ${USER_GROUP} ${USER_NAME} && \
+#     usermod -aG ${USER_GROUP} www-data && \
+#     usermod -aG www-data ${USER_NAME}
 
 # Install Oh My Zsh for the user
 USER ${USER_NAME}
@@ -213,13 +219,17 @@ COPY docker/scripts/workspace.entrypoint.sh /entrypoint.sh
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/scripts/generate-sites.sh /usr/local/bin/generate-sites.sh
 
+# Copy PHP pool configuration script
+COPY docker/scripts/php-manager.sh /usr/local/bin/php-manager.sh
+COPY docker/scripts/project-status.sh /usr/local/bin/project-status.sh
+
 # Set proper permissions
 RUN chown ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
     chmod +x /entrypoint.sh && \
-    chmod +x /usr/local/bin/generate-sites.sh
+    chmod +x /usr/local/bin/generate-sites.sh && \
+    chmod +x /usr/local/bin/php-manager.sh && \
+    chmod +x /usr/local/bin/project-status.sh
 
-# Set USER and www-data on one group
-RUN usermod -aG www-data ${USER_NAME}
 
 # Expose SSH, HTTP and HTTPS ports
 EXPOSE 22 80 443

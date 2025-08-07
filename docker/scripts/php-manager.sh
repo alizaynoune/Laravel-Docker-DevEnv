@@ -1,18 +1,16 @@
 #!/bin/bash
-#########################################
-# Laravel Docker Development Environment
-# Nginx Site Configuration Generator v2.0
-#########################################
+###############################################################################
+# PHP-FPM Management Utility
+# Part of Laravel Docker Development Environment v2.0
+###############################################################################
 #
-# This script generates nginx site configurations based on a YAML sites map.
-# Each site entry in sitesMap.yaml creates a corresponding nginx configuration
-# with SSL support, PHP-FPM integration, and WebSocket support for Laravel WebSockets.
+# This script provides comprehensive management for multiple PHP-FPM versions
+# including status monitoring, service control, and debugging capabilities.
 #
-# Author: Docker Environment Team
-# Version: 2.0
-# Date: 2025-08-01
+# Usage: php-manager.sh [command]
+# Commands: status, sockets, logs, restart, test, versions, info
 #
-#########################################
+###############################################################################
 
 set -e
 
@@ -21,284 +19,269 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Configuration variables
-SITES_MAP_FILE="/var/www/sitesMap.yaml"
-SITES_AVAILABLE_DIR="/etc/nginx/sites-available"
-SITES_ENABLED_DIR="/etc/nginx/sites-enabled"
+# PHP versions managed by this system
+PHP_VERSIONS=("7.0" "7.1" "7.2" "7.3" "7.4" "8.0" "8.1" "8.2" "8.3")
 
 # Logging functions
 log() {
-    echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}"
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 success() {
-    echo -e "${GREEN}[SUCCESS] $1${NC}"
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
 warning() {
-    echo -e "${YELLOW}[WARNING] $1${NC}"
+    echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
 error() {
-    echo -e "${RED}[ERROR] $1${NC}"
+    echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Function to check if yq is installed
-check_yq() {
-    if ! command -v yq &> /dev/null; then
-        error "yq is not installed. Please install yq to parse YAML files."
-        exit 1
-    fi
-}
-
-# Function to validate the sites map file
-validate_sites_map() {
-    if [ ! -f "$SITES_MAP_FILE" ]; then
-        error "Sites map file not found: $SITES_MAP_FILE"
-        exit 1
-    fi
+# Function to show PHP-FPM service status
+show_status() {
+    log "PHP-FPM Pool Status:"
     
-    if ! yq eval '.sites' "$SITES_MAP_FILE" &> /dev/null; then
-        error "Invalid YAML format in $SITES_MAP_FILE"
-        exit 1
-    fi
-    
-    local site_count
-    site_count=$(yq eval '.sites | length' "$SITES_MAP_FILE")
-    if [ "$site_count" -eq 0 ]; then
-        warning "No sites found in $SITES_MAP_FILE"
-        exit 0
-    fi
-    
-    echo "$site_count"
-}
-
-# Main execution starts here
-main() {
-    log "Cleaning existing site configurations..."
-    
-    # Check if yq is installed
-    check_yq
-    
-    # Validate sites map file
-    SITE_COUNT=$(validate_sites_map)
-    
-    # Create directories if they don't exist
-    mkdir -p "$SITES_AVAILABLE_DIR" "$SITES_ENABLED_DIR"
-    
-    # Remove existing site configurations
-    rm -f "$SITES_ENABLED_DIR"/*
-    rm -f "$SITES_AVAILABLE_DIR"/*.conf
-    
-    log "Generating nginx site configurations from $SITES_MAP_FILE..."
-    log "Found $SITE_COUNT site(s) to configure"
-    
-    # Process each site
-    for ((i=0; i<SITE_COUNT; i++)); do
-        SITE_MAP=$(yq eval ".sites[$i].map" "$SITES_MAP_FILE")
-        SITE_TO=$(yq eval ".sites[$i].to" "$SITES_MAP_FILE")
-        SITE_PHP=$(yq eval ".sites[$i].php" "$SITES_MAP_FILE")
-        
-        # Remove quotes if present
-        SITE_MAP=$(echo "$SITE_MAP" | sed 's/^"//;s/"$//')
-        SITE_TO=$(echo "$SITE_TO" | sed 's/^"//;s/"$//')
-        SITE_PHP=$(echo "$SITE_PHP" | sed 's/^"//;s/"$//')
-        
-        # Use Unix socket based on PHP version
-        PHP_SOCKET="unix:/run/php/php${SITE_PHP}-fpm.sock"
-        
-        # Determine if it's a Laravel project (has public directory)
-        if [[ "$SITE_TO" == *"/public" ]]; then
-            ROOT_PATH="/var/www/$SITE_TO"
-            INDEX_FILE="index.php"
-            TRY_FILES='$uri $uri/ /index.php?$query_string'
+    for version in "${PHP_VERSIONS[@]}"; do
+        if supervisorctl status "php${version}-fpm" >/dev/null 2>&1; then
+            supervisorctl status "php${version}-fpm"
         else
-            ROOT_PATH="/var/www/$SITE_TO"
-            INDEX_FILE="index.php index.html index.htm"
-            TRY_FILES='$uri $uri/ /index.php?$args'
+            warning "PHP $version not found in supervisor"
+        fi
+    done
+}
+
+# Function to show socket files
+show_sockets() {
+    log "PHP-FPM Socket Files:"
+    
+    if [ -d "/run/php" ]; then
+        ls -la /run/php/ | grep -E "\.(sock|pid)$" || echo "No socket files found"
+    else
+        warning "Socket directory /run/php does not exist"
+    fi
+}
+
+# Function to show log files
+show_logs() {
+    local version="$1"
+    
+    if [ -n "$version" ]; then
+        # Show logs for specific version
+        log "PHP $version FPM logs:"
+        echo "--- Error log ---"
+        if [ -f "/var/log/php${version}-fpm.log" ]; then
+            tail -20 "/var/log/php${version}-fpm.log"
+        else
+            warning "Log file not found: /var/log/php${version}-fpm.log"
         fi
         
-        log "Configuring site: $SITE_MAP -> $ROOT_PATH (PHP $SITE_PHP)"
-        
-        # Generate nginx configuration
-        SITE_CONFIG="$SITES_AVAILABLE_DIR/$SITE_MAP.conf"
-        
-        cat > "$SITE_CONFIG" << EOF
-# Laravel/PHP Site Configuration: $SITE_MAP
-# Generated automatically - DO NOT EDIT MANUALLY
-
-server {
-    listen 80;
-    listen [::]:80;
-    server_name $SITE_MAP;
-
-    # Redirect HTTP to HTTPS
-    return 301 https://\$server_name\$request_uri;
+        echo "--- Access log ---"
+        if [ -f "/var/log/php${version}-fpm.access.log" ]; then
+            tail -10 "/var/log/php${version}-fpm.access.log"
+        else
+            warning "Access log not found: /var/log/php${version}-fpm.access.log"
+        fi
+    else
+        # Show all log files
+        log "Available PHP-FPM log files:"
+        for version in "${PHP_VERSIONS[@]}"; do
+            echo "--- PHP $version ---"
+            if [ -f "/var/log/php${version}-fpm.log" ]; then
+                echo "Error log: /var/log/php${version}-fpm.log"
+                echo "Last error:"
+                tail -1 "/var/log/php${version}-fpm.log" 2>/dev/null || echo "No errors"
+            fi
+            if [ -f "/var/log/php${version}-fpm.access.log" ]; then
+                echo "Access log: /var/log/php${version}-fpm.access.log"
+            fi
+            echo ""
+        done
+    fi
 }
 
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name $SITE_MAP;
-
-    # SSL Configuration
-    ssl_certificate /etc/nginx/ssl/self-signed.crt;
-    ssl_certificate_key /etc/nginx/ssl/self-signed.key;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-
-    # Document root
-    root $ROOT_PATH;
-    index $INDEX_FILE;
-
-    # Charset
-    charset utf-8;
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "no-referrer-when-downgrade" always;
-    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
-
-    # WebSocket location block
-    location @ws {
-        proxy_pass http://127.0.0.1:6001;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \$connection_upgrade;
-        proxy_http_version 1.1;
-        proxy_cache_bypass \$http_upgrade;
-        proxy_read_timeout 86400s;
-        proxy_send_timeout 86400s;
-    }
-
-    # Web location block
-    location @web {
-        try_files \$uri \$uri/ /index.php?\$query_string;
-    }
-
-    # Main location block with WebSocket routing
-    location / {
-        try_files /nonexistent @\$type;
-    }
-
-    # Handle PHP files
-    location ~ \.php$ {
-        try_files \$uri =404;
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass $PHP_SOCKET;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
-        fastcgi_param DOCUMENT_ROOT \$realpath_root;
-        include fastcgi_params;
-
-        # Laravel specific
-        fastcgi_param PATH_INFO \$fastcgi_path_info;
-        fastcgi_param PATH_TRANSLATED \$document_root\$fastcgi_path_info;
-
-        # Timeouts
-        fastcgi_connect_timeout 60s;
-        fastcgi_send_timeout 60s;
-        fastcgi_read_timeout 60s;
-    }
-
-    # Deny access to hidden files
-    location ~ /\. {
-        deny all;
-        access_log off;
-        log_not_found off;
-    }
-
-    # Deny access to sensitive files
-    location ~* \.(env|git|svn|htaccess|htpasswd)$ {
-        deny all;
-        access_log off;
-        log_not_found off;
-    }
-
-    # Handle static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        access_log off;
-        log_not_found off;
-    }
-
-    # Optimize images
-    location ~* \.(jpg|jpeg|png|gif|ico|svg)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        add_header Vary Accept-Encoding;
-        access_log off;
-        log_not_found off;
-    }
-
-    # Handle Laravel storage and public files
-    location ~* /storage/.*\.(php|php\d+|phtml|inc)$ {
-        deny all;
-    }
-
-    # Error and access logs
-    error_log /var/log/nginx/${SITE_MAP}_error.log;
-    access_log /var/log/nginx/${SITE_MAP}_access.log;
-
-    # Client settings
-    client_max_body_size 100M;
-    client_body_timeout 60s;
-    client_header_timeout 60s;
+# Function to restart PHP-FPM services
+restart_services() {
+    local version="$1"
+    
+    if [ -n "$version" ]; then
+        # Restart specific version
+        log "Restarting PHP $version FPM..."
+        if supervisorctl restart "php${version}-fpm" >/dev/null 2>&1; then
+            success "PHP $version FPM restarted"
+        else
+            error "Failed to restart PHP $version FPM"
+        fi
+    else
+        # Restart all versions
+        log "Restarting all PHP-FPM services..."
+        for version in "${PHP_VERSIONS[@]}"; do
+            log "Restarting php${version}-fpm..."
+            if supervisorctl restart "php${version}-fpm" >/dev/null 2>&1; then
+                echo "php${version}-fpm: stopped"
+                echo "php${version}-fpm: started"
+            else
+                warning "Failed to restart php${version}-fpm"
+            fi
+        done
+        success "All PHP-FPM services restarted"
+    fi
 }
-EOF
-        
-        # Enable the site
-        ln -sf "$SITE_CONFIG" "$SITES_ENABLED_DIR/"
-        success "Site $SITE_MAP configured successfully"
+
+# Function to test PHP-FPM configurations
+test_configs() {
+    log "Testing PHP-FPM configurations:"
+    
+    local errors=0
+    for version in "${PHP_VERSIONS[@]}"; do
+        local config_file="/etc/php/${version}/fpm/php-fpm.conf"
+        if [ -f "$config_file" ]; then
+            if php-fpm${version} -t >/dev/null 2>&1; then
+                echo "✅ PHP $version configuration: OK"
+            else
+                echo "❌ PHP $version configuration: ERROR"
+                ((errors++))
+            fi
+        else
+            warning "PHP $version configuration file not found"
+        fi
     done
     
-    # Generate a default server block for unmatched domains
-    log "Generating default server configuration..."
-    cat > "$SITES_AVAILABLE_DIR/default.conf" << 'EOF'
-# Default server block
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    listen 443 ssl default_server;
-    listen [::]:443 ssl default_server;
-
-    server_name _;
-
-    # SSL Configuration (for default HTTPS)
-    ssl_certificate /etc/nginx/ssl/self-signed.crt;
-    ssl_certificate_key /etc/nginx/ssl/self-signed.key;
-
-    # Return 444 for unmatched domains
-    return 444;
-}
-EOF
-    
-    ln -sf "$SITES_AVAILABLE_DIR/default.conf" "$SITES_ENABLED_DIR/"
-    
-    success "Nginx site generation completed!"
-    log "Generated configurations for $SITE_COUNT site(s)"
-    
-    # Test nginx configuration
-    if nginx -t > /dev/null 2>&1; then
-        success "Nginx configuration test passed"
+    if [ $errors -eq 0 ]; then
+        success "All PHP-FPM configurations are valid"
     else
-        error "Nginx configuration test failed"
-        nginx -t
-        exit 1
+        error "$errors configuration(s) have errors"
+    fi
+}
+
+# Function to show PHP versions
+show_versions() {
+    log "Available PHP Versions:"
+    
+    for version in "${PHP_VERSIONS[@]}"; do
+        local status="❌"
+        local socket_status="❌"
+        
+        # Check if PHP is installed
+        if command -v "php${version}" >/dev/null 2>&1; then
+            status="✅ Installed"
+        else
+            status="❌ Not installed"
+        fi
+        
+        # Check if socket exists
+        if [ -S "/run/php/php${version}-fpm.sock" ]; then
+            socket_status="✅"
+        else
+            socket_status="❌"
+        fi
+        
+        echo "  PHP ${version}: ${status} (Socket: ${socket_status})"
+    done
+}
+
+# Function to show comprehensive information
+show_info() {
+    log "PHP Environment Information:"
+    
+    echo "📍 Current default PHP version:"
+    php --version | head -1
+    
+    echo ""
+    echo "📁 PHP Configuration directories:"
+    ls -la /etc/php/ 2>/dev/null || echo "PHP configuration directory not found"
+    
+    echo ""
+    echo "🔌 Active PHP-FPM sockets:"
+    local socket_count=0
+    if [ -d "/run/php" ]; then
+        echo "  Active sockets: $(find /run/php -name "*.sock" | wc -l)"
+        find /run/php -name "*.sock" | while read socket; do
+            echo "  - $socket"
+        done
+        socket_count=$(find /run/php -name "*.sock" | wc -l)
     fi
     
-    success "All nginx configurations generated and validated successfully!"
+    echo ""
+    echo "📊 Memory usage by PHP-FPM processes:"
+    local total_memory=0
+    if command -v ps >/dev/null 2>&1; then
+        # Calculate total RSS memory for all PHP-FPM processes
+        total_memory=$(ps aux | grep '[p]hp.*fpm' | awk '{sum += $6} END {print sum/1024}')
+        echo "  Total RSS: ${total_memory} MB"
+    else
+        echo "  Unable to calculate memory usage (ps not available)"
+    fi
+}
+
+# Function to show help
+show_help() {
+    echo "PHP-FPM Management Utility"
+    echo "=========================="
+    echo ""
+    echo "Usage: $0 [command] [version]"
+    echo ""
+    echo "Commands:"
+    echo "  status              Show status of all PHP-FPM services"
+    echo "  sockets             List PHP-FPM socket files"
+    echo "  logs [version]      Show log files (all or specific version)"
+    echo "  restart [version]   Restart PHP-FPM services (all or specific version)"
+    echo "  test                Test all PHP-FPM configurations"
+    echo "  versions            Show available PHP versions"
+    echo "  info                Show comprehensive PHP environment information"
+    echo "  help                Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 status           # Show all PHP-FPM service status"
+    echo "  $0 restart 8.1      # Restart only PHP 8.1 FPM"
+    echo "  $0 logs 7.4         # Show logs for PHP 7.4"
+    echo "  $0 sockets          # List all socket files"
+    echo ""
+    echo "Available PHP versions: ${PHP_VERSIONS[*]}"
+}
+
+# Main function
+main() {
+    local command="$1"
+    local version="$2"
+    
+    case "$command" in
+        "status"|"s")
+            show_status
+        ;;
+        "sockets"|"sock")
+            show_sockets
+        ;;
+        "logs"|"log"|"l")
+            show_logs "$version"
+        ;;
+        "restart"|"r")
+            restart_services "$version"
+        ;;
+        "test"|"t")
+            test_configs
+        ;;
+        "versions"|"v")
+            show_versions
+        ;;
+        "info"|"i")
+            show_info
+        ;;
+        "help"|"h"|""|"--help")
+            show_help
+        ;;
+        *)
+            error "Unknown command: $command"
+            echo ""
+            show_help
+            exit 1
+        ;;
+    esac
 }
 
 # Run main function
