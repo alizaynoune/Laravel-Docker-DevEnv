@@ -24,7 +24,8 @@ BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 # Configuration
-SITES_MAP_FILE="/var/www/sitesMap.yaml"
+DESTINATION_DIR=${DESTINATION_DIR:-/var/www}
+SITES_MAP_FILE="${DESTINATION_DIR}/sitesMap.yaml"
 PHP_VERSIONS=("7.0" "7.1" "7.2" "7.3" "7.4" "8.0" "8.1" "8.2" "8.3")
 
 # Utility functions
@@ -66,7 +67,7 @@ show_environment_overview() {
     echo "📅 Current Date: $(date)"
     echo "👤 Current User: $(whoami)"
     echo "🖥️  Hostname: $(hostname)"
-    echo "📂 Project Directory: /var/www"
+    echo "📂 Project Directory: ${DESTINATION_DIR}"
     echo ""
 }
 
@@ -191,14 +192,14 @@ show_system_resources() {
         echo "💾 Memory Usage: ${used_mem}MB / ${total_mem}MB (${mem_percent}%)"
     fi
     
-    # Disk usage for /var/www
+    # Disk usage for ${DESTINATION_DIR}
     if command -v df >/dev/null 2>&1; then
-        local disk_info=$(df -h /var/www 2>/dev/null | tail -1)
+        local disk_info=$(df -h "${DESTINATION_DIR}" 2>/dev/null | tail -1)
         if [ -n "$disk_info" ]; then
             local used=$(echo "$disk_info" | awk '{print $3}')
             local available=$(echo "$disk_info" | awk '{print $4}')
             local percent=$(echo "$disk_info" | awk '{print $5}')
-            echo "💿 Disk Usage (/var/www): ${used} used, ${available} available (${percent})"
+            echo "💿 Disk Usage (${DESTINATION_DIR}): ${used} used, ${available} available (${percent})"
         fi
     fi
     

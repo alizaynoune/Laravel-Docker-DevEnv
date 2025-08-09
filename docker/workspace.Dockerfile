@@ -8,10 +8,12 @@ ARG USER_PASSWORD
 ARG ROOT_PASSWORD
 ARG USER_GID
 ARG USER_UID
+ARG DESTINATION_DIR
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
+    TERM=xterm-256color \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_CACHE_DIR=/tmp/composer \
     PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
@@ -117,9 +119,10 @@ RUN groupadd -g ${USER_GID} ${USER_GROUP} && \
     echo "root:${ROOT_PASSWORD}" | chpasswd
 
 # Set user and www-data on one group
-# RUN usermod -aG ${USER_GROUP} ${USER_NAME} && \
-#     usermod -aG ${USER_GROUP} www-data && \
-#     usermod -aG www-data ${USER_NAME}
+RUN usermod -aG ${USER_GROUP} ${USER_NAME} && \
+    usermod -aG ${USER_GROUP} www-data && \
+    usermod -aG www-data ${USER_NAME} && \
+    usermod -aG sudo ${USER_NAME}
 
 # Install Oh My Zsh for the user
 USER ${USER_NAME}
@@ -203,8 +206,8 @@ RUN YQ_VERSION="v4.35.2" && \
 RUN mkdir -p /var/log/supervisor && \
     mkdir -p /home/${USER_NAME}/.ssh && \
     mkdir -p /run/php && \
-    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh && \
-    chown www-data:docker /run/php && \
+    chown -R ${USER_NAME}:${USER_GROUP} /home/${USER_NAME}/.ssh && \
+    chown www-data:${USER_GROUP} /run/php && \
     chmod 755 /run/php
 
 # Copy custom configurations (using --from build context or create default if missing)
@@ -235,7 +238,7 @@ RUN chown ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
 EXPOSE 22 80 443
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR ${DESTINATION_DIR}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

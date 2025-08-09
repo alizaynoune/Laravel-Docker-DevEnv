@@ -166,10 +166,10 @@ add_phpmyadmin_service() {
     restart: unless-stopped
     hostname: phpmyadmin
     ports:
-      - "8080:80"
+      - "\${PHPMYADMIN_PORT}:80"
     environment:
       PMA_HOST: mysql
-      PMA_PORT: 3306
+      PMA_PORT: \${MYSQL_PORT}
       PMA_USER: root
       PMA_PASSWORD: \${MYSQL_ROOT_PASSWORD}
       UPLOAD_LIMIT: 100M
@@ -243,8 +243,8 @@ add_mailhog_service() {
     restart: unless-stopped
     hostname: mailhog
     ports:
-      - "1025:1025"  # SMTP port
-      - "8025:8025"  # Web UI port
+      - "\${MAILHOG_SMTP_PORT}:1025"  # SMTP
+      - "\${MAILHOG_WEB_PORT}:8025"    # Web UI
     networks:
       - laravel-docker-devenv-network
     environment:

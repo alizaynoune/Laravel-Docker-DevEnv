@@ -24,7 +24,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration variables
-SITES_MAP_FILE="/var/www/sitesMap.yaml"
+DESTINATION_DIR=${DESTINATION_DIR:-/var/www}
+SITES_MAP_FILE="${DESTINATION_DIR}/sitesMap.yaml"
 SITES_AVAILABLE_DIR="/etc/nginx/sites-available"
 SITES_ENABLED_DIR="/etc/nginx/sites-enabled"
 
@@ -111,11 +112,11 @@ main() {
         
         # Determine if it's a Laravel project (has public directory)
         if [[ "$SITE_TO" == *"/public" ]]; then
-            ROOT_PATH="/var/www/$SITE_TO"
+            ROOT_PATH="${DESTINATION_DIR}/$SITE_TO"
             INDEX_FILE="index.php"
             TRY_FILES='$uri $uri/ /index.php?$query_string'
         else
-            ROOT_PATH="/var/www/$SITE_TO"
+            ROOT_PATH="${DESTINATION_DIR}/$SITE_TO"
             INDEX_FILE="index.php index.html index.htm"
             TRY_FILES='$uri $uri/ /index.php?$args'
         fi

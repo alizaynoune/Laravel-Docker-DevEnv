@@ -9,11 +9,11 @@ DOCKER_COMPOSE_COMMAND = $(shell if docker compose > /dev/null 2>&1; then echo $
 DOCKER = docker
 
 # Load environment variables
-include .env
-export
+ifneq (,$(wildcard .env))
+	include .env
+endif
 
-# User variables
-USER_NAME = $(shell grep USER_NAME .env 2>/dev/null | cut -d '=' -f 2 || echo "docker")
+# User variables from .env
 NETWORK_NAME = laravel-docker-devenv-network
 PROJECT_NAME = laravel-devenv
 
@@ -35,8 +35,8 @@ PURPLE = \033[1;35m
 #########################################
 help:
 	@echo -e "$(BLUE)╔══════════════════════════════════════════════════════════════════════╗$(DEFAULT)"
-	@echo -e "$(BLUE)║                Laravel Docker Development Environment v2.0             ║$(DEFAULT)"
-	@echo -e "$(BLUE)║                    Multi-PHP Laravel Development Stack                 ║$(DEFAULT)"
+	@echo -e "$(BLUE)║                Laravel Docker Development Environment v2.0           ║$(DEFAULT)"
+	@echo -e "$(BLUE)║                    Multi-PHP Laravel Development Stack               ║$(DEFAULT)"
 	@echo -e "$(BLUE)╚══════════════════════════════════════════════════════════════════════╝$(DEFAULT)"
 	@echo -e ""
 	@echo -e "$(BLUE)📋 Container Management:$(DEFAULT)"
@@ -71,9 +71,9 @@ help:
 	@echo -e ""
 	@echo -e "$(BLUE)🌐 Web Access:$(DEFAULT)"
 	@echo -e "  $(YELLOW)Applications:$(DEFAULT)     http://your-app.local (configure in sitesMap.yaml)"
-	@echo -e "  $(YELLOW)PHPMyAdmin:$(DEFAULT)       http://localhost:8080"
-	@echo -e "  $(YELLOW)MailHog:$(DEFAULT)          http://localhost:8025"
-	@echo -e "  $(YELLOW)Workspace SSH:$(DEFAULT)    ssh $(USER_NAME)@localhost -p 2222"
+	@echo -e "  $(YELLOW)PHPMyAdmin:$(DEFAULT)       http://localhost:$(PHPMYADMIN_PORT)"
+	@echo -e "  $(YELLOW)MailHog:$(DEFAULT)          http://localhost:$(MAILHOG_WEB_PORT)"
+	@echo -e "  $(YELLOW)Workspace SSH:$(DEFAULT)    ssh $(USER_NAME)@localhost -p $(WORKSPACE_SSH_PORT)"
 	@echo -e ""
 
 #########################################
@@ -85,6 +85,8 @@ install:
 	@if [ ! -f .env ]; then \
 		echo -e "$(YELLOW)📝 Creating .env file from example...$(DEFAULT)"; \
 		cp env.example .env; \
+		sed -i "s/USER_UID=.*/USER_UID=$$(id -u)/" .env; \
+		sed -i "s/USER_GID=.*/USER_GID=$$(id -g)/" .env; \
 		echo -e "$(GREEN)✅ Created .env file. Please edit it with your settings.$(DEFAULT)"; \
 	else \
 		echo -e "$(YELLOW)📝 .env file already exists$(DEFAULT)"; \
@@ -96,8 +98,10 @@ install:
 	else \
 		echo -e "$(YELLOW)🗺️  sitesMap.yaml file already exists$(DEFAULT)"; \
 	fi
+# 	add method or alias to .zshrc for run the make command from any location
+
 	@echo -e "$(YELLOW)📁 Creating data directories...$(DEFAULT)"
-	@mkdir -p docker/db/mysql/data docker/db/redis/data
+	@mkdir -p $(MYSQL_DATA_DIR) $(REDIS_DATA_DIR)
 	@echo -e "$(GREEN)✅ Data directories created$(DEFAULT)"
 	@echo -e "$(BLUE)════════════════════════════════════════════════════════$(DEFAULT)"
 	@echo -e "$(GREEN)🎉 Setup complete!$(DEFAULT)"
@@ -124,9 +128,9 @@ up: generate-services
 	@echo -e "$(GREEN)✅ Environment is now running!$(DEFAULT)"
 	@echo -e ""
 	@echo -e "$(BLUE)🌐 Access URLs:$(DEFAULT)"
-	@echo -e "  $(YELLOW)PHPMyAdmin:$(DEFAULT)       http://localhost:8080"
-	@echo -e "  $(YELLOW)MailHog:$(DEFAULT)          http://localhost:8025"
-	@echo -e "  $(YELLOW)Workspace SSH:$(DEFAULT)    ssh $(USER_NAME)@localhost -p 2222"
+	@echo -e "  $(YELLOW)PHPMyAdmin:$(DEFAULT)       http://localhost:$(PHPMYADMIN_PORT)"
+	@echo -e "  $(YELLOW)MailHog:$(DEFAULT)          http://localhost:$(MAILHOG_WEB_PORT)"
+	@echo -e "  $(YELLOW)Workspace SSH:$(DEFAULT)    ssh $(USER_NAME)@localhost -p $(WORKSPACE_SSH_PORT)"
 	@echo -e ""
 	@echo -e "$(BLUE)💡 Tip:$(DEFAULT) Use 'make workspace' to access the development environment"
 
