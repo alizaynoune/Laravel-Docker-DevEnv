@@ -9,6 +9,7 @@ ARG ROOT_PASSWORD
 ARG USER_GID
 ARG USER_UID
 ARG DESTINATION_DIR
+ARG DEFAULT_PHP
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -156,8 +157,14 @@ RUN update-alternatives --install /usr/bin/php php /usr/bin/php7.0 70 && \
     update-alternatives --install /usr/bin/php php /usr/bin/php8.2 82 && \
     update-alternatives --install /usr/bin/php php /usr/bin/php8.3 83
 
-# Set PHP 8.1 as default
-RUN update-alternatives --set php /usr/bin/php8.1
+#check if default PHP version is a valid version else set to 8.3
+RUN if ! update-alternatives --query php | grep -q "Value: /usr/bin/php${DEFAULT_PHP}"; then \
+    echo "Invalid PHP version ${DEFAULT_PHP}, defaulting to 8.3"; \
+    DEFAULT_PHP=8.3; \
+fi
+# Set default PHP version
+RUN update-alternatives --set php /usr/bin/php${DEFAULT_PHP} && \
+    echo "Default PHP version set to ${DEFAULT_PHP}"
 
 ########################################################################
 # Configure PHP-FPM for all installed versions

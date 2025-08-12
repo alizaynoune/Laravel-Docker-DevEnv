@@ -54,20 +54,20 @@ handle_error() {
 # Load configuration from .env file
 load_config() {
     log "Loading configuration from .env file..."
-    
+
     if [ ! -f "$ENV_FILE" ]; then
         handle_error "Environment file (.env) not found. Please run 'make install' first."
     fi
-    
+
     # Load environment variables
     export $(grep -v '^#' "$ENV_FILE" | xargs)
-    
+
     # Set defaults if not specified
     ENABLE_MYSQL=${ENABLE_MYSQL:-true}
     ENABLE_PHPMYADMIN=${ENABLE_PHPMYADMIN:-true}
     ENABLE_REDIS=${ENABLE_REDIS:-true}
     ENABLE_MAILHOG=${ENABLE_MAILHOG:-true}
-    
+
     # IF all services are disabled remove docker-compose.override.yml and exit
     if [ "$ENABLE_MYSQL" = "false" ] && [ "$ENABLE_PHPMYADMIN" = "false" ] && [ "$ENABLE_REDIS" = "false" ] && [ "$ENABLE_MAILHOG" = "false" ]; then
         if [ -f "$DOCKER_COMPOSE_OVERRIDE" ]; then
@@ -77,7 +77,7 @@ load_config() {
         success "No services enabled. Exiting without generating docker-compose.override.yml."
         exit 0
     fi
-    
+
     success "Configuration loaded successfully"
     log "Service status - MySQL: $ENABLE_MYSQL, PHPMyAdmin: $ENABLE_PHPMYADMIN, Redis: $ENABLE_REDIS, MailHog: $ENABLE_MAILHOG"
 }
@@ -85,7 +85,7 @@ load_config() {
 # Generate docker-compose override header
 generate_header() {
     log "Generating docker-compose.override.yml header..."
-    
+
     cat > "$DOCKER_COMPOSE_OVERRIDE" <<EOF
 ########################################################################
 # AUTOMATICALLY GENERATED FILE - DO NOT EDIT MANUALLY                  #
@@ -165,8 +165,6 @@ add_phpmyadmin_service() {
     container_name: phpmyadmin
     restart: unless-stopped
     hostname: phpmyadmin
-    ports:
-      - "\${PHPMYADMIN_PORT}:80"
     environment:
       PMA_HOST: mysql
       PMA_PORT: \${MYSQL_PORT}
@@ -264,7 +262,7 @@ EOF
 # Add volume definitions
 add_volumes() {
     log "Adding volume definitions for enabled services..."
-    
+
     cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
 
 ########################################################################
@@ -272,7 +270,7 @@ add_volumes() {
 ########################################################################
 volumes:
 EOF
-    
+
     if [ "$ENABLE_MYSQL" = "true" ]; then
         cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
   # MySQL data persistence
@@ -284,7 +282,7 @@ EOF
       device: \${MYSQL_DATA_DIR}
 EOF
     fi
-    
+
     if [ "$ENABLE_REDIS" = "true" ]; then
         cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
   # Redis data persistence
@@ -301,7 +299,7 @@ EOF
 # Add footer with additional configurations
 generate_footer() {
     log "Adding additional configurations..."
-    
+
     cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
 
 ########################################################################
@@ -354,9 +352,9 @@ EOF
 # Main function
 main() {
     print_banner "Laravel Docker Development Environment - Service Generator v2.1"
-    
+
     log "Starting Docker Compose override generation..."
-    
+
     # Run all setup functions
     load_config
     generate_header
@@ -366,10 +364,10 @@ main() {
     add_mailhog_service
     add_volumes
     generate_footer
-    
+
     success "Docker Compose override file generated successfully!"
     log "Generated file: $DOCKER_COMPOSE_OVERRIDE"
-    
+
     # Validate generated docker-compose file
     log "Validating generated Docker Compose configuration..."
     if docker-compose -f docker-compose.yml -f docker-compose.override.yml config > /dev/null 2>&1; then
@@ -378,7 +376,7 @@ main() {
         warning "Docker Compose configuration validation failed. Please check the generated file."
         return 1
     fi
-    
+
     log "To start the environment, run: make up"
 }
 

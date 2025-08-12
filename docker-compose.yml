@@ -17,6 +17,7 @@ x-app-args: &default-args
   USER_UID: ${USER_UID:-1000}
   DESTINATION_DIR: ${DESTINATION_DIR:-/var/www}
   WORKSPACE_SSH_PORT: ${WORKSPACE_SSH_PORT:-2222}
+  DEFAULT_PHP: ${DEFAULT_PHP:-8.3}
 
 x-common-volumes: &common-volumes
   - app-data:${DESTINATION_DIR:-/var/www}:rw
@@ -51,6 +52,8 @@ services:
       - USER_UID=${USER_UID:-1000}
       - USER_GID=${USER_GID:-1000}
       - DESTINATION_DIR=${DESTINATION_DIR:-/var/www}
+      - ENABLE_PHPMYADMIN=${ENABLE_PHPMYADMIN:-false}
+      - PHPMYADMIN_URL=${PHPMYADMIN_URL:-phpmyadmin.local}
     ports:
       - "${WORKSPACE_SSH_PORT:-2222}:${WORKSPACE_SSH_PORT:-2222}"  # SSH
       - "80:80"    # HTTP

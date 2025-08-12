@@ -28,6 +28,8 @@ DESTINATION_DIR=${DESTINATION_DIR:-/var/www}
 SITES_MAP_FILE="${DESTINATION_DIR}/sitesMap.yaml"
 SITES_AVAILABLE_DIR="/etc/nginx/sites-available"
 SITES_ENABLED_DIR="/etc/nginx/sites-enabled"
+ENABLE_PHPMYADMIN=${ENABLE_PHPMYADMIN:-false}
+PHPMYADMIN_URL=${PHPMYADMIN_URL:-phpmyadmin.local}
 
 # Logging functions
 log() {
@@ -60,56 +62,115 @@ validate_sites_map() {
         error "Sites map file not found: $SITES_MAP_FILE"
         exit 1
     fi
-    
+
     if ! yq eval '.sites' "$SITES_MAP_FILE" &> /dev/null; then
         error "Invalid YAML format in $SITES_MAP_FILE"
         exit 1
     fi
-    
+
     local site_count
     site_count=$(yq eval '.sites | length' "$SITES_MAP_FILE")
     if [ "$site_count" -eq 0 ]; then
         warning "No sites found in $SITES_MAP_FILE"
         exit 0
     fi
-    
+
     echo "$site_count"
+}
+
+# PhpMyAdmin configuration
+configure_phpmyadmin() {
+    log "Configuring PhpMyAdmin..."
+    cat > "$SITES_AVAILABLE_DIR/phpmyadmin.conf" << EOF
+# PhpMyAdmin Configuration
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    listen 80;
+    listen [::]:80;
+    server_name $PHPMYADMIN_URL;
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/self-signed.crt;
+    ssl_certificate_key /etc/nginx/ssl/self-signed.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Document root
+    root /usr/share/nginx/html;
+    index index.php index.html;
+
+    # Charset
+    charset utf-8;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+
+
+    location / {
+        proxy_pass http://phpmyadmin:80;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    # Error and access logs
+    error_log /var/log/nginx/phpmyadmin_error.log;
+    access_log /var/log/nginx/phpmyadmin_access.log;
+}
+EOF
+    ln -sf "$SITES_AVAILABLE_DIR/phpmyadmin.conf" "$SITES_ENABLED_DIR/"
+    log "PhpMyAdmin configuration created at $SITES_AVAILABLE_DIR/phpmyadmin.conf"
+    # Add $PHPMYADMIN_URL to /etc/hosts
+    if ! grep -q "$PHPMYADMIN_URL" /etc/hosts; then
+        CONTAINER_IP=$(hostname -i | awk '{print $1}')
+        log "Adding $PHPMYADMIN_URL to /etc/hosts with IP $CONTAINER_IP"
+        echo "$CONTAINER_IP $PHPMYADMIN_URL" >> /etc/hosts
+        success "Added $PHPMYADMIN_URL to /etc/hosts"
+    else
+        log "$PHPMYADMIN_URL already exists in /etc/hosts"
+    fi
+        success "PhpMyAdmin configuration completed successfully"
 }
 
 # Main execution starts here
 main() {
     log "Cleaning existing site configurations..."
-    
+
     # Check if yq is installed
     check_yq
-    
+
     # Validate sites map file
     SITE_COUNT=$(validate_sites_map)
-    
+
     # Create directories if they don't exist
     mkdir -p "$SITES_AVAILABLE_DIR" "$SITES_ENABLED_DIR"
-    
-    # Remove existing site configurations
-    rm -f "$SITES_ENABLED_DIR"/*
-    rm -f "$SITES_AVAILABLE_DIR"/*.conf
-    
+
     log "Generating nginx site configurations from $SITES_MAP_FILE..."
     log "Found $SITE_COUNT site(s) to configure"
-    
+
     # Process each site
     for ((i=0; i<SITE_COUNT; i++)); do
         SITE_MAP=$(yq eval ".sites[$i].map" "$SITES_MAP_FILE")
         SITE_TO=$(yq eval ".sites[$i].to" "$SITES_MAP_FILE")
         SITE_PHP=$(yq eval ".sites[$i].php" "$SITES_MAP_FILE")
-        
+
         # Remove quotes if present
         SITE_MAP=$(echo "$SITE_MAP" | sed 's/^"//;s/"$//')
         SITE_TO=$(echo "$SITE_TO" | sed 's/^"//;s/"$//')
         SITE_PHP=$(echo "$SITE_PHP" | sed 's/^"//;s/"$//')
-        
+
         # Use Unix socket based on PHP version
         PHP_SOCKET="unix:/run/php/php${SITE_PHP}-fpm.sock"
-        
+
         # Determine if it's a Laravel project (has public directory)
         if [[ "$SITE_TO" == *"/public" ]]; then
             ROOT_PATH="${DESTINATION_DIR}/$SITE_TO"
@@ -120,28 +181,32 @@ main() {
             INDEX_FILE="index.php index.html index.htm"
             TRY_FILES='$uri $uri/ /index.php?$args'
         fi
-        
+
         log "Configuring site: $SITE_MAP -> $ROOT_PATH (PHP $SITE_PHP)"
-        
+
         # Generate nginx configuration
         SITE_CONFIG="$SITES_AVAILABLE_DIR/$SITE_MAP.conf"
-        
+
+        # Remove existing config if it exists
+        if [ -f "$SITE_CONFIG" ]; then
+            log "Removing existing configuration: $SITE_CONFIG"
+            rm -f "$SITE_CONFIG" "$SITES_ENABLED_DIR/$SITE_MAP.conf"
+            success "Removed existing configuration: $SITE_CONFIG"
+        fi
+
+        log "Creating new configuration: $SITE_CONFIG"
+
+
         cat > "$SITE_CONFIG" << EOF
 # Laravel/PHP Site Configuration: $SITE_MAP
 # Generated automatically - DO NOT EDIT MANUALLY
 
-server {
-    listen 80;
-    listen [::]:80;
-    server_name $SITE_MAP;
-
-    # Redirect HTTP to HTTPS
-    return 301 https://\$server_name\$request_uri;
-}
 
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
+    listen 80;
+    listen [::]:80;
     server_name $SITE_MAP;
 
     # SSL Configuration
@@ -258,7 +323,7 @@ server {
     client_header_timeout 60s;
 }
 EOF
-        
+
         # Enable the site
         ln -sf "$SITE_CONFIG" "$SITES_ENABLED_DIR/"
         # add site to hosts file if not already present
@@ -272,7 +337,7 @@ EOF
         fi
         success "Site $SITE_MAP configured successfully"
     done
-    
+
     # Generate a default server block for unmatched domains
     log "Generating default server configuration..."
     cat > "$SITES_AVAILABLE_DIR/default.conf" << 'EOF'
@@ -293,12 +358,18 @@ server {
     return 444;
 }
 EOF
-    
+
     ln -sf "$SITES_AVAILABLE_DIR/default.conf" "$SITES_ENABLED_DIR/"
-    
+
+    if [ "$ENABLE_PHPMYADMIN" = true ]; then
+        configure_phpmyadmin
+    else
+        log "PhpMyAdmin configuration is disabled (ENABLE_PHPMYADMIN is set to false)"
+    fi
+
     success "Nginx site generation completed!"
     log "Generated configurations for $SITE_COUNT site(s)"
-    
+
     # Test nginx configuration
     if nginx -t > /dev/null 2>&1; then
         success "Nginx configuration test passed"
@@ -307,7 +378,7 @@ EOF
         nginx -t
         exit 1
     fi
-    
+
     success "All nginx configurations generated and validated successfully!"
 }
 
