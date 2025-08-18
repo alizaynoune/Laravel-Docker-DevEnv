@@ -183,7 +183,8 @@ workspace:
 
 ssh:
 	@echo -e "$(BLUE)🔗 Connecting to workspace via SSH...$(DEFAULT)"
-	@$(DOCKER_COMPOSE_COMMAND) exec -u $(USER_NAME) workspace zsh
+	@ssh -p $(WORKSPACE_SSH_PORT) $(USER_NAME)@$(shell docker inspect workspace -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}') || echo -e "$(RED)SSH connection failed. Check your SSH configuration.$(DEFAULT)"
+	@echo -e "$(BLUE)💡 Tip: Use 'make exec CONTAINER'$(DEFAULT)"
 
 exec:
 	@echo -e "$(BLUE)⚡ Executing command in container...$(DEFAULT)"

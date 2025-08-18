@@ -10,6 +10,7 @@ ARG USER_GID
 ARG USER_UID
 ARG DESTINATION_DIR
 ARG DEFAULT_PHP
+ARG WORKSPACE_SSH_PORT
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -184,6 +185,7 @@ RUN for version in 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3; do \
 RUN mkdir /var/run/sshd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#Port 22/Port '${WORKSPACE_SSH_PORT}'/' /etc/ssh/sshd_config && \
     echo 'AllowUsers root '${USER_NAME} >> /etc/ssh/sshd_config
 
 ########################################################################
