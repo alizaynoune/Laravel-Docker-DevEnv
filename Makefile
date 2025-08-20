@@ -23,7 +23,6 @@ BLUE = \033[1;96m
 GREEN = \033[1;32m
 RED = \033[1;31m
 YELLOW = \033[1;33m
-PURPLE = \033[1;35m
 
 .PHONY: help up down stop start restart ps logs exec clean re build prune install update status ssh workspace mysql redis nginx php-versions generate-services
 
@@ -197,10 +196,6 @@ mysql:
 redis:
 	@echo -e "$(BLUE)🔴 Connecting to Redis console...$(DEFAULT)"
 	@$(DOCKER_COMPOSE_COMMAND) exec redis redis-cli
-
-nginx:
-	@echo -e "$(BLUE)🌐 Accessing Nginx container...$(DEFAULT)"
-	@$(DOCKER_COMPOSE_COMMAND) exec nginx sh
 
 #########################################
 # INFORMATION                           #
