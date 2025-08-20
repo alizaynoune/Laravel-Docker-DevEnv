@@ -15,7 +15,7 @@ endif
 
 # User variables from .env
 NETWORK_NAME = laravel-docker-devenv-network
-PROJECT_NAME = laravel-devenv
+PROJECT_NAME = laravel-docker-devenv
 
 # Colors
 DEFAULT = \033[1;0m

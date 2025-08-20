@@ -43,7 +43,7 @@ if command -v "docker" >/dev/null 2>&1; then
 fi
 
 # Global variables
-PROJECT_NAME="laravel-devenv"
+PROJECT_NAME="laravel-docker-devenv"
 NETWORK_NAME="laravel-docker-devenv-network"
 
 ###############################################################################
