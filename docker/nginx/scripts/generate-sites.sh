@@ -30,6 +30,7 @@ SITES_AVAILABLE_DIR="/etc/nginx/sites-available"
 SITES_ENABLED_DIR="/etc/nginx/sites-enabled"
 ENABLE_PHPMYADMIN=${ENABLE_PHPMYADMIN:-false}
 PHPMYADMIN_URL=${PHPMYADMIN_URL:-phpmyadmin.local}
+DEFAULT_PHP=${DEFAULT_PHP:-8.3}
 
 # Logging functions
 log() {
@@ -82,7 +83,7 @@ validate_sites_map() {
 configure_phpmyadmin() {
     log "Configuring PhpMyAdmin..."
     cat > "$SITES_AVAILABLE_DIR/phpmyadmin.conf" << EOF
-# PhpMyAdmin Configuration
+# PhpMyAdmin Configuration - Integrated into Workspace Container
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
@@ -99,9 +100,9 @@ server {
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 10m;
 
-    # Document root
-    root /usr/share/nginx/html;
-    index index.php index.html;
+    # Document root - PHPMyAdmin files are now in the workspace container
+    root /usr/share/phpmyadmin;
+    index index.php index.html index.htm;
 
     # Charset
     charset utf-8;
@@ -113,18 +114,61 @@ server {
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
 
-
+    # Main location block
     location / {
-        proxy_pass http://phpmyadmin:80;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    # PHP processing - using the default PHP version
+    location ~ \.php$ {
+        try_files \$uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/run/php/php${DEFAULT_PHP}-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT \$realpath_root;
+        include fastcgi_params;
+
+        # PHPMyAdmin specific parameters
+        fastcgi_param PATH_INFO \$fastcgi_path_info;
+        fastcgi_param PATH_TRANSLATED \$document_root\$fastcgi_path_info;
+
+        # Increase timeouts for long-running operations
+        fastcgi_connect_timeout 300;
+        fastcgi_send_timeout 300;
+        fastcgi_read_timeout 300;
+    }
+
+    # Deny access to specific directories and files
+    location ~ ^/(setup|config|libraries)/ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Handle static assets with caching
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+        log_not_found off;
     }
 
     # Error and access logs
     error_log /var/log/nginx/phpmyadmin_error.log;
     access_log /var/log/nginx/phpmyadmin_access.log;
+
+    # Client settings
+    client_max_body_size 100M;
+    client_body_timeout 60s;
+    client_header_timeout 60s;
 }
 EOF
     ln -sf "$SITES_AVAILABLE_DIR/phpmyadmin.conf" "$SITES_ENABLED_DIR/"

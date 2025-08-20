@@ -254,18 +254,17 @@ show_service_health() {
             echo ""
         fi
 
-        # Check PHPMyAdmin
-        if echo "$running_containers" | grep -q "phpmyadmin"; then
-            echo -e "🔧 ${BOLD}PHPMyAdmin${NC}"
-            # Use PHPMYADMIN_URL from .env, fallback to localhost with port
-            if [ -n "${PHPMYADMIN_URL:-}" ]; then
-                echo -e "     Access: ${CYAN}http://${PHPMYADMIN_URL}${NC}"
-            elif [ -n "${PHPMYADMIN_PORT:-}" ]; then
-                echo -e "     Access: ${CYAN}http://localhost:${PHPMYADMIN_PORT}${NC}"
+        # Check PHPMyAdmin (now integrated into workspace)
+        if [ "${ENABLE_PHPMYADMIN:-false}" = "true" ] && [ "${ENABLE_MYSQL:-false}" = "true" ]; then
+            echo -e "🔧 ${BOLD}PHPMyAdmin (Integrated)${NC}"
+            # Check if PHPMyAdmin is properly installed in workspace
+            if [ -d "/usr/share/phpmyadmin" ] 2>/dev/null || [ -n "${PHPMYADMIN_URL:-}" ]; then
+                echo -e "     Access: ${CYAN}http://${PHPMYADMIN_URL:-phpmyadmin.local}${NC}"
+                echo -e "     Status: ${GREEN}✅ Available in Workspace${NC}"
+                echo -e "     Location: ${WHITE}Integrated into workspace container${NC}"
             else
-                echo -e "     Access: ${CYAN}http://localhost:8080${NC}"
+                echo -e "     Status: ${YELLOW}⚠️  Not installed (requires rebuild)${NC}"
             fi
-            echo -e "     Status: ${GREEN}✅ Available${NC}"
             echo ""
         fi
 

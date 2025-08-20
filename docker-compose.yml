@@ -37,6 +37,8 @@ services:
       dockerfile: docker/workspace.Dockerfile
       args:
         <<: *default-args
+        ENABLE_MYSQL: ${ENABLE_MYSQL:-false}
+        ENABLE_PHPMYADMIN: ${ENABLE_PHPMYADMIN:-false}
     container_name: workspace
     restart: unless-stopped
     hostname: workspace
@@ -52,8 +54,12 @@ services:
       - USER_UID=${USER_UID:-1000}
       - USER_GID=${USER_GID:-1000}
       - DESTINATION_DIR=${DESTINATION_DIR:-/var/www}
+      - ENABLE_MYSQL=${ENABLE_MYSQL:-false}
       - ENABLE_PHPMYADMIN=${ENABLE_PHPMYADMIN:-false}
       - PHPMYADMIN_URL=${PHPMYADMIN_URL:-phpmyadmin.local}
+      - MYSQL_HOST=${MYSQL_HOST:-mysql}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - DEFAULT_PHP=${DEFAULT_PHP:-8.3}
     ports:
       - "${WORKSPACE_SSH_PORT:-2222}:${WORKSPACE_SSH_PORT:-2222}"  # SSH
       - "80:80"    # HTTP

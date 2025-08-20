@@ -1,0 +1,61 @@
+<?php
+/**
+ * PHPMyAdmin Configuration Template
+ * This file will be processed by the workspace entrypoint script
+ * Variables will be replaced with actual values from environment
+ */
+
+/* Authentication type */
+$cfg['blowfish_secret'] = 'PHPMYADMIN_SECRET_PLACEHOLDER';
+
+/* Server configuration */
+$i = 0;
+
+/* Server: MySQL */
+$i++;
+$cfg['Servers'][$i]['auth_type'] = 'cookie';
+$cfg['Servers'][$i]['host'] = 'MYSQL_HOST_PLACEHOLDER';
+$cfg['Servers'][$i]['port'] = MYSQL_PORT_PLACEHOLDER;
+$cfg['Servers'][$i]['connect_type'] = 'tcp';
+$cfg['Servers'][$i]['compress'] = false;
+$cfg['Servers'][$i]['AllowNoPassword'] = false;
+
+/* rajout */
+$cfg['Servers'][$i]['extension'] = 'mysqli';
+$cfg['Servers'][$i]['AllowNoPassword'] = true;
+$cfg['Servers'][$i]['hide_db'] = '^information_schema|performance_schema|mysql|phpmyadmin$';
+
+/* Upload options */
+$cfg['UploadDir'] = '/usr/share/phpmyadmin/tmp';
+$cfg['SaveDir'] = '/usr/share/phpmyadmin/tmp';
+
+/* Server defaults */
+$cfg['DefaultLang'] = 'en';
+$cfg['ServerDefault'] = 1;
+$cfg['DefaultTabServer'] = 'welcome';
+$cfg['DefaultTabDatabase'] = 'structure';
+$cfg['DefaultTabTable'] = 'browse';
+
+/* Theme */
+$cfg['ThemeDefault'] = 'pmahomme';
+
+/* Security */
+$cfg['CheckConfigurationPermissions'] = false;
+$cfg['TempDir'] = '/usr/share/phpmyadmin/tmp';
+
+/* Memory and time limits */
+$cfg['MemoryLimit'] = '512M';
+$cfg['ExecTimeLimit'] = 300;
+
+/* Export/Import settings */
+$cfg['MaxSizeForInputField'] = '50MB';
+
+/* Logging */
+$cfg['Error_Handler']['display'] = true;
+$cfg['Error_Handler']['gather'] = true;
+$cfg['Error_Handler']['log'] = true;
+
+/* Console settings */
+$cfg['Console']['StartHistory'] = true;
+$cfg['Console']['AlwaysExpand'] = true;
+$cfg['Console']['CurrentQuery'] = true;

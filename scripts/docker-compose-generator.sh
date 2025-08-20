@@ -151,45 +151,6 @@ EOF
     fi
 }
 
-# Add PHPMyAdmin service if enabled and MySQL is enabled
-add_phpmyadmin_service() {
-    if [ "$ENABLE_PHPMYADMIN" = "true" ] && [ "$ENABLE_MYSQL" = "true" ]; then
-        log "Adding PHPMyAdmin service"
-        cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
-
-  ####################################################################
-  #                     PHPMyAdmin                                   #
-  ####################################################################
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: phpmyadmin
-    restart: unless-stopped
-    hostname: phpmyadmin
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: \${MYSQL_PORT}
-      PMA_USER: root
-      PMA_PASSWORD: \${MYSQL_ROOT_PASSWORD}
-      UPLOAD_LIMIT: 100M
-      TZ: \${TZ}
-    depends_on:
-      - mysql
-    networks:
-      - laravel-docker-devenv-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-EOF
-        elif [ "$ENABLE_PHPMYADMIN" = "true" ] && [ "$ENABLE_MYSQL" != "true" ]; then
-        warning "PHPMyAdmin requires MySQL to be enabled. Skipping PHPMyAdmin."
-    else
-        log "PHPMyAdmin service disabled"
-    fi
-}
-
 # Add Redis service if enabled
 add_redis_service() {
     if [ "$ENABLE_REDIS" = "true" ]; then
@@ -359,7 +320,6 @@ main() {
     load_config
     generate_header
     add_mysql_service
-    add_phpmyadmin_service
     add_redis_service
     add_mailhog_service
     add_volumes

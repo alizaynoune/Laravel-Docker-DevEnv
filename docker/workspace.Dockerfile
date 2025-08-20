@@ -113,6 +113,37 @@ RUN npm install -g yarn
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+########################################################################
+# Conditional PHPMyAdmin Installation
+########################################################################
+# PHPMyAdmin will be installed only if ENABLE_MYSQL=true and ENABLE_PHPMYADMIN=true
+# Build arguments for conditional installation
+ARG ENABLE_MYSQL=false
+ARG ENABLE_PHPMYADMIN=false
+
+# Install PHPMyAdmin conditionally
+RUN if [ "$ENABLE_MYSQL" = "true" ] && [ "$ENABLE_PHPMYADMIN" = "true" ]; then \
+    echo "Installing PHPMyAdmin..." && \
+    # Create PHPMyAdmin directory
+    mkdir -p /usr/share/phpmyadmin && \
+    # Download and extract PHPMyAdmin
+    PHPMYADMIN_VERSION="5.2.1" && \
+    curl -L "https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz" \
+    -o /tmp/phpmyadmin.tar.gz && \
+    tar -xzf /tmp/phpmyadmin.tar.gz -C /usr/share/phpmyadmin --strip-components=1 && \
+    rm /tmp/phpmyadmin.tar.gz && \
+    # Set proper permissions
+    chown -R www-data:www-data /usr/share/phpmyadmin && \
+    chmod -R 755 /usr/share/phpmyadmin && \
+    # Create config directory
+    mkdir -p /usr/share/phpmyadmin/tmp && \
+    chown www-data:www-data /usr/share/phpmyadmin/tmp && \
+    chmod 777 /usr/share/phpmyadmin/tmp && \
+    echo "PHPMyAdmin installed successfully"; \
+else \
+    echo "PHPMyAdmin installation skipped (ENABLE_MYSQL=$ENABLE_MYSQL, ENABLE_PHPMYADMIN=$ENABLE_PHPMYADMIN)"; \
+fi
+
 # Create user with sudo privileges (using default UID/GID)
 RUN groupadd -g ${USER_GID} ${USER_GROUP} && \
     useradd -u ${USER_UID} -g ${USER_GID} -m -s /bin/zsh ${USER_NAME} && \
@@ -230,6 +261,9 @@ COPY docker/scripts/workspace.entrypoint.sh /entrypoint.sh
 # Copy nginx configurations and scripts
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/scripts/generate-sites.sh /usr/local/bin/generate-sites.sh
+
+# Copy PHPMyAdmin configuration template (will be processed in entrypoint)
+COPY docker/phpmyadmin/ /usr/local/share/phpmyadmin-config/
 
 # Copy PHP pool configuration script
 COPY docker/scripts/php-manager.sh /usr/local/bin/php-manager.sh
