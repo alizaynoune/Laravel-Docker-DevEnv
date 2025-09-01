@@ -24,6 +24,8 @@ alias php-sockets='php-manager.sh sockets'
 alias php-logs='php-manager.sh logs'
 alias php-info='php-manager.sh info'
 alias php-versions='php-manager.sh versions'
+alias machine-status='machine-status.sh'
+alias php-manager='sudo php-manager.sh'
 
 # Development aliases
 alias ll='ls -la'
@@ -68,7 +70,7 @@ phpv() {
         echo "Usage: phpv <version>"
         return
     fi
-    
+
     case "$1" in
         "7.0"|"70") sudo update-alternatives --set php /usr/bin/php7.0 ;;
         "7.1"|"71") sudo update-alternatives --set php /usr/bin/php7.1 ;;
@@ -81,7 +83,7 @@ phpv() {
         "8.3"|"83") sudo update-alternatives --set php /usr/bin/php8.3 ;;
         *) echo "Unsupported PHP version: $1" ;;
     esac
-    
+
     if [ $? -eq 0 ]; then
         echo "Switched to PHP $1"
         php --version | head -n1
@@ -99,48 +101,21 @@ dev-info() {
     echo "🎼 Composer Version: $(composer --version 2>/dev/null || echo 'Not available')"
     echo "📦 Node Version: $(node --version 2>/dev/null || echo 'Not available')"
     echo "📦 NPM Version: $(npm --version 2>/dev/null || echo 'Not available')"
-    echo "🌐 Nginx Status: $(supervisorctl status nginx 2>/dev/null | awk '{print $2}' || echo 'Unknown')"
+    echo "🌐 Nginx Status: $(nginx-status 2>/dev/null | awk '{print $2}' || echo 'Unknown')"
     echo ""
     echo "🔧 Available PHP Versions:"
     echo "   phpv 7.0-8.3  - Switch PHP version"
     echo "   php70-php83    - Use specific PHP version"
     echo ""
-    echo "🐘 PHP Management:"
-    echo "   php-status     - Show PHP-FPM pool status"
-    echo "   php-restart    - Restart all PHP-FPM services"
-    echo "   php-sockets    - List PHP-FPM socket files"
-    echo "   php-logs       - Show PHP-FPM log files"
-    echo "   php-info       - Show detailed PHP information"
-    echo "   php-versions   - List available PHP versions"
-    echo ""
-    echo "🎯 Laravel Shortcuts:"
-    echo "   art            - php artisan"
-    echo "   tinker         - php artisan tinker"
-    echo "   migrate        - php artisan migrate"
-    echo "   seed           - php artisan db:seed"
-    echo "   routes         - php artisan route:list"
-    echo ""
-    echo "🌐 Nginx Management:"
-    echo "   nginx-reload   - Reload nginx configuration"
-    echo "   nginx-test     - Test nginx configuration"
-    echo "   nginx-status   - Check nginx status"
-    echo "   nginx-restart  - Restart nginx service"
-    echo "   nginx-sites    - Regenerate site configurations"
-    echo ""
-    echo "📦 Composer Shortcuts:"
-    echo "   comp           - composer"
-    echo "   compi          - composer install"
-    echo "   compu          - composer update"
-    echo "   compr          - composer require"
-    echo ""
-    echo "🔧 Development Tools:"
-    echo "   Service URLs:"
-    echo "   📊 PHPMyAdmin:    http://localhost:8080"
-    echo "   📧 MailHog:       http://localhost:8025"
-    echo "   🔄 Redis:         localhost:6379"
-    echo "   🗄️  MySQL:        localhost:3306"
-    echo "   🌐 Web Sites:     Check sitesMap.yaml for configured domains"
-    echo ""
+    echo "🛠️  Development Commands:"
+    echo "   machine-status  - Show machine status"
+    echo "   php-status      - Show PHP-FPM pool status"
+    echo "   php-restart     - Restart all PHP-FPM services"
+    echo "   php-sockets     - List PHP-FPM socket files"
+    echo "   php-logs        - Show PHP-FPM log files"
+    echo "   php-info        - Show detailed PHP information"
+    echo "   php-versions    - List available PHP versions"
+	echo "   php-manager     - Manage PHP-FPM services"
 }
 
 # Welcome message
@@ -157,6 +132,8 @@ if [[ $- == *i* ]]; then
     echo "║    • php-versions    - Show available PHP versions                   ║"
     echo "║    • laravel-new     - Create new Laravel project                    ║"
     echo "║    • dev-info        - Show development environment info             ║"
+	echo "║    • machine-status - Show machine status                            ║"
+	echo "║    • php-manager     - Manage PHP-FPM services                       ║"
     echo "║    • artisan         - Run Laravel artisan commands                  ║"
     echo "║                                                                      ║"
     echo "║  🔧 PHP Version Switchers:                                           ║"

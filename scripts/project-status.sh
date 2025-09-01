@@ -164,9 +164,9 @@ show_docker_status() {
     echo ""
 }
 
-# Show container status (optimized for speed)
-show_container_status() {
-    print_section "Container Health & Status"
+# Show comprehensive container status and service health with resource usage
+show_containers_and_services() {
+    print_section "Container Status & Service Health"
 
     if [ -z "$DOCKER_COMPOSE_CMD" ]; then
         echo -e "${RED}❌ Docker Compose not available${NC}"
@@ -177,107 +177,116 @@ show_container_status() {
     # Navigate to project directory for docker-compose commands
     cd "$PROJECT_ROOT"
 
-    # Get basic container status only (fast)
-    local containers_status
-    if ! containers_status=$($DOCKER_COMPOSE_CMD ps --format "table {{.Name}}\t{{.Status}}" 2>/dev/null); then
+    # Get container status
+    local containers_output
+    if ! containers_output=$($DOCKER_COMPOSE_CMD ps --format "{{.Name}} {{.Status}}" 2>/dev/null); then
         echo -e "${YELLOW}⚠️  No containers found or docker-compose.yml not accessible${NC}"
         echo ""
         return 1
     fi
 
-    # Parse and display basic container information
-    if [ -n "$containers_status" ]; then
-        echo "$containers_status" | tail -n +2 | while IFS=$'\t' read -r name status; do
-            if [ -n "$name" ] && [ -n "$status" ]; then
-                # Determine status icon based on status text only
+    # Parse and display container information
+    if [ -n "$containers_output" ]; then
+        echo "$containers_output" | while read -r name container_status; do
+            if [ -n "$name" ] && [ -n "$container_status" ]; then
+                # Determine status icon and color
                 local icon="⚪"
                 local status_color="$WHITE"
 
-                if [[ "$status" =~ [Uu]p ]]; then
+                if [[ "$container_status" =~ [Uu]p ]]; then
                     icon="🟢"
                     status_color="$GREEN"
-                elif [[ "$status" =~ [Ee]xit ]]; then
+                elif [[ "$container_status" =~ [Ee]xit ]]; then
                     icon="🔴"
                     status_color="$RED"
-                elif [[ "$status" =~ [Rr]estarting ]]; then
+                elif [[ "$container_status" =~ [Rr]estarting ]]; then
                     icon="🟡"
                     status_color="$YELLOW"
                 fi
 
-                # Display container information (basic only)
-                echo -e "  $icon ${BOLD}${name}${NC}"
-                echo -e "     Status: ${status_color}${status}${NC}"
+                # Get service-specific details and icon
+                local service_details=""
+
+                case "$name" in
+                    "workspace")
+                        service_details="Development Workspace"
+                        ;;
+                    "mysql")
+                        service_details="MySQL Database"
+                        ;;
+                    "redis")
+                        service_details="Redis Cache & Memory Store"
+                        ;;
+                    "mailhog")
+                        service_details="MailHog Email Testing"
+                        ;;
+                    *)
+                        service_details="$name"
+                        ;;
+                esac
+
+                # Display container information
+                echo -e "  $icon ${BOLD}${service_details}${NC}"
+                echo -e "     Container: ${WHITE}${name}${NC}"
+                echo -e "     Status: ${status_color}${container_status}${NC}"
+
+                # Add service-specific information
+                case "$name" in
+                    "workspace")
+                        if [[ "$container_status" =~ [Uu]p ]]; then
+                            echo -e "     Access: ${GREEN}SSH/Terminal available${NC}"
+                            echo -e "     Web Server: ${GREEN}http://localhost (Nginx)${NC}"
+                            echo -e "     Ports: ${CYAN}80 (HTTP), 443 (HTTPS), ${WORKSPACE_SSH_PORT} (SSH)${NC}"
+                        fi
+                        ;;
+                    "mysql")
+                        if [[ "$container_status" =~ [Uu]p ]]; then
+                            echo -e "     Connection: ${GREEN}Available on port ${MYSQL_PORT:-3306}${NC}"
+                            echo -e "     Database: ${CYAN}Ready for connections${NC}"
+                        fi
+                        ;;
+                    "redis")
+                        if [[ "$container_status" =~ [Uu]p ]]; then
+                            echo -e "     Connection: ${GREEN}Available on port ${REDIS_PORT:-6379}${NC}"
+                            echo -e "     Cache: ${CYAN}Ready for operations${NC}"
+                        fi
+                        ;;
+                    "mailhog")
+                        if [[ "$container_status" =~ [Uu]p ]]; then
+                            echo -e "     Web Interface: ${GREEN}http://localhost:${MAILHOG_WEB_PORT:-8025}${NC}"
+                            echo -e "     SMTP Port: ${GREEN}${MAILHOG_SMTP_PORT:-1025}${NC}"
+                            echo -e "     Email Testing: ${CYAN}Ready to capture emails${NC}"
+                        fi
+                        ;;
+                esac
+
                 echo ""
             fi
         done
-    else
-        echo -e "${YELLOW}⚠️  No containers found${NC}"
-    fi
 
-    echo ""
-}
-
-# Show service health with essential details
-show_service_health() {
-    print_section "Service Health Details"
-
-    cd "$PROJECT_ROOT"
-
-    # Check if containers are running
-    local running_containers
-    if running_containers=$($DOCKER_COMPOSE_CMD ps --services --filter "status=running" 2>/dev/null); then
-
-        # Check workspace container
-        if echo "$running_containers" | grep -q "workspace"; then
-            echo -e "🖥️  ${BOLD}Workspace Container${NC}"
-            echo -e "     Status: ${GREEN}✅ Running${NC}"
-            echo ""
-        fi
-
-        # Check MySQL
-        if echo "$running_containers" | grep -q "mysql"; then
-            echo -e "🗄️  ${BOLD}MySQL Database${NC}"
-            echo -e "     Status: ${GREEN}✅ Running${NC}"
-            if [ -n "${MYSQL_PORT:-}" ]; then
-                echo -e "     Port: ${CYAN}${MYSQL_PORT}${NC}"
-            fi
-            echo ""
-        fi
-
-        # Check Redis
-        if echo "$running_containers" | grep -q "redis"; then
-            echo -e "🔴 ${BOLD}Redis Cache${NC}"
-            echo -e "     Status: ${GREEN}✅ Running${NC}"
-            if [ -n "${REDIS_PORT:-}" ]; then
-                echo -e "     Port: ${CYAN}${REDIS_PORT}${NC}"
-            fi
-            echo ""
-        fi
-
-        # Check PHPMyAdmin (now integrated into workspace)
+        # Add PHPMyAdmin info if enabled (integrated into workspace)
         if [ "${ENABLE_PHPMYADMIN:-false}" = "true" ] && [ "${ENABLE_MYSQL:-false}" = "true" ]; then
-            echo -e "🔧 ${BOLD}PHPMyAdmin (Integrated)${NC}"
-            # Check if PHPMyAdmin is properly installed in workspace
+            echo -e "  🔧 ${BOLD}PHPMyAdmin (Integrated)${NC}"
+            echo -e "     Container: ${WHITE}Integrated into workspace${NC}"
             if [ -d "/usr/share/phpmyadmin" ] 2>/dev/null || [ -n "${PHPMYADMIN_URL:-}" ]; then
-                echo -e "     Access: ${CYAN}http://${PHPMYADMIN_URL:-phpmyadmin.local}${NC}"
+                echo -e "     Access: ${CYAN}http://${PHPMYADMIN_URL:-phpmyadmin2.local}${NC}"
                 echo -e "     Status: ${GREEN}✅ Available in Workspace${NC}"
-                echo -e "     Location: ${WHITE}Integrated into workspace container${NC}"
             else
                 echo -e "     Status: ${YELLOW}⚠️  Not installed (requires rebuild)${NC}"
             fi
             echo ""
         fi
 
-        # Check MailHog
-        if echo "$running_containers" | grep -q "mailhog"; then
-            echo -e "📧 ${BOLD}MailHog Email Testing${NC}"
-            echo -e "     Web UI: ${CYAN}http://localhost:${MAILHOG_WEB_PORT:-8025}${NC}"
-            echo -e "     Status: ${GREEN}✅ Available${NC}"
-            echo ""
-        fi
+        # Summary
+        local total_containers=$(echo "$containers_output" | wc -l)
+        local running_containers=$(echo "$containers_output" | grep -c "Up" || echo "0")
+        echo -e "${BOLD}📊 Summary:${NC}"
+        echo -e "     Total Containers: ${WHITE}${total_containers}${NC}"
+        echo -e "     Running: ${GREEN}${running_containers}${NC}"
+        echo -e "     Stopped: ${RED}$((total_containers - running_containers))${NC}"
 
     else
-        echo -e "${YELLOW}⚠️  No running services found${NC}"
+        echo -e "${YELLOW}⚠️  No containers found${NC}"
         echo -e "   Run 'make up' to start the development environment"
     fi
 
@@ -442,12 +451,17 @@ main() {
     # Show all status sections
     show_environment_overview
     show_docker_status
-    show_container_status
-    show_service_health
+    show_containers_and_services
     show_configured_sites
 
     # Final message
     echo -e "${BOLD}${GREEN}✅ Status check completed successfully!${NC}"
+    echo ""
+    echo -e "${BOLD}💡 Pro Tips:${NC}"
+    echo -e "  • For real-time container stats: ${CYAN}docker stats${NC}"
+    echo -e "  • To check specific container: ${CYAN}docker stats <container-name>${NC}"
+    echo -e "  • To restart environment: ${CYAN}make restart${NC}"
+    echo -e "  • To stop environment: ${CYAN}make down${NC}"
     echo ""
 }
 

@@ -267,14 +267,14 @@ COPY docker/phpmyadmin/ /usr/local/share/phpmyadmin-config/
 
 # Copy PHP pool configuration script
 COPY docker/scripts/php-manager.sh /usr/local/bin/php-manager.sh
-COPY docker/scripts/project-status.sh /usr/local/bin/project-status.sh
+COPY docker/scripts/machine-status.sh /usr/local/bin/machine-status.sh
 
 # Set proper permissions
 RUN chown ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
     chmod +x /entrypoint.sh && \
     chmod +x /usr/local/bin/generate-sites.sh && \
     chmod +x /usr/local/bin/php-manager.sh && \
-    chmod +x /usr/local/bin/project-status.sh
+    chmod +x /usr/local/bin/machine-status.sh
 
 
 # Expose SSH, HTTP and HTTPS ports

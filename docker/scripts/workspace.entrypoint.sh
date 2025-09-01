@@ -99,9 +99,11 @@ setup_phpmyadmin() {
             cp /usr/local/share/phpmyadmin-config/config.inc.php.template /usr/share/phpmyadmin/config.inc.php
 
             # Replace placeholders with actual values
-            sed -i "s/PHPMYADMIN_SECRET_PLACEHOLDER/$(openssl rand -base64 32)/" /usr/share/phpmyadmin/config.inc.php
-            sed -i "s/MYSQL_HOST_PLACEHOLDER/${MYSQL_HOST:-mysql}/" /usr/share/phpmyadmin/config.inc.php
-            sed -i "s/MYSQL_PORT_PLACEHOLDER/${MYSQL_PORT:-3306}/" /usr/share/phpmyadmin/config.inc.php
+            # Use a different delimiter (|) to avoid issues with special characters
+            PHPMYADMIN_SECRET=$(openssl rand -base64 32)
+            sed -i "s|PHPMYADMIN_SECRET_PLACEHOLDER|${PHPMYADMIN_SECRET}|" /usr/share/phpmyadmin/config.inc.php
+            sed -i "s|MYSQL_HOST_PLACEHOLDER|${MYSQL_HOST:-mysql}|" /usr/share/phpmyadmin/config.inc.php
+            sed -i "s|MYSQL_PORT_PLACEHOLDER|${MYSQL_PORT:-3306}|" /usr/share/phpmyadmin/config.inc.php
 
             # Set proper permissions
             chown www-data:www-data /usr/share/phpmyadmin/config.inc.php

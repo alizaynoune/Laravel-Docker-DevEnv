@@ -46,7 +46,7 @@ error() {
 # Function to show PHP-FPM service status
 show_status() {
     log "PHP-FPM Pool Status:"
-    
+
     for version in "${PHP_VERSIONS[@]}"; do
         if supervisorctl status "php${version}-fpm" >/dev/null 2>&1; then
             supervisorctl status "php${version}-fpm"
@@ -59,7 +59,7 @@ show_status() {
 # Function to show socket files
 show_sockets() {
     log "PHP-FPM Socket Files:"
-    
+
     if [ -d "/run/php" ]; then
         ls -la /run/php/ | grep -E "\.(sock|pid)$" || echo "No socket files found"
     else
@@ -70,7 +70,7 @@ show_sockets() {
 # Function to show log files
 show_logs() {
     local version="$1"
-    
+
     if [ -n "$version" ]; then
         # Show logs for specific version
         log "PHP $version FPM logs:"
@@ -80,7 +80,7 @@ show_logs() {
         else
             warning "Log file not found: /var/log/php${version}-fpm.log"
         fi
-        
+
         echo "--- Access log ---"
         if [ -f "/var/log/php${version}-fpm.access.log" ]; then
             tail -10 "/var/log/php${version}-fpm.access.log"
@@ -108,7 +108,7 @@ show_logs() {
 # Function to restart PHP-FPM services
 restart_services() {
     local version="$1"
-    
+
     if [ -n "$version" ]; then
         # Restart specific version
         log "Restarting PHP $version FPM..."
@@ -136,7 +136,7 @@ restart_services() {
 # Function to test PHP-FPM configurations
 test_configs() {
     log "Testing PHP-FPM configurations:"
-    
+
     local errors=0
     for version in "${PHP_VERSIONS[@]}"; do
         local config_file="/etc/php/${version}/fpm/php-fpm.conf"
@@ -151,7 +151,7 @@ test_configs() {
             warning "PHP $version configuration file not found"
         fi
     done
-    
+
     if [ $errors -eq 0 ]; then
         success "All PHP-FPM configurations are valid"
     else
@@ -162,25 +162,25 @@ test_configs() {
 # Function to show PHP versions
 show_versions() {
     log "Available PHP Versions:"
-    
+
     for version in "${PHP_VERSIONS[@]}"; do
         local status="❌"
         local socket_status="❌"
-        
+
         # Check if PHP is installed
         if command -v "php${version}" >/dev/null 2>&1; then
             status="✅ Installed"
         else
             status="❌ Not installed"
         fi
-        
+
         # Check if socket exists
         if [ -S "/run/php/php${version}-fpm.sock" ]; then
             socket_status="✅"
         else
             socket_status="❌"
         fi
-        
+
         echo "  PHP ${version}: ${status} (Socket: ${socket_status})"
     done
 }
@@ -188,14 +188,14 @@ show_versions() {
 # Function to show comprehensive information
 show_info() {
     log "PHP Environment Information:"
-    
+
     echo "📍 Current default PHP version:"
     php --version | head -1
-    
+
     echo ""
     echo "📁 PHP Configuration directories:"
     ls -la /etc/php/ 2>/dev/null || echo "PHP configuration directory not found"
-    
+
     echo ""
     echo "🔌 Active PHP-FPM sockets:"
     local socket_count=0
@@ -206,7 +206,7 @@ show_info() {
         done
         socket_count=$(find /run/php -name "*.sock" | wc -l)
     fi
-    
+
     echo ""
     echo "📊 Memory usage by PHP-FPM processes:"
     local total_memory=0
@@ -236,12 +236,6 @@ show_help() {
     echo "  info                Show comprehensive PHP environment information"
     echo "  help                Show this help message"
     echo ""
-    echo "Examples:"
-    echo "  $0 status           # Show all PHP-FPM service status"
-    echo "  $0 restart 8.1      # Restart only PHP 8.1 FPM"
-    echo "  $0 logs 7.4         # Show logs for PHP 7.4"
-    echo "  $0 sockets          # List all socket files"
-    echo ""
     echo "Available PHP versions: ${PHP_VERSIONS[*]}"
 }
 
@@ -249,7 +243,7 @@ show_help() {
 main() {
     local command="$1"
     local version="$2"
-    
+
     case "$command" in
         "status"|"s")
             show_status

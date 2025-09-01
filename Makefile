@@ -13,7 +13,7 @@ ifneq (,$(wildcard .env))
 	include .env
 endif
 
-# User variables from .env
+# Network and Project Names
 NETWORK_NAME = laravel-docker-devenv-network
 PROJECT_NAME = laravel-docker-devenv
 

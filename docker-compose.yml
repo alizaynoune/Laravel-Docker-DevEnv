@@ -1,8 +1,8 @@
 ########################################################################
-#                Laravel Docker Development Environment                 #
+#                Laravel Docker Development Environment                #
 ########################################################################
 # A comprehensive Docker environment for Laravel development with      #
-# multi-PHP support, MySQL, Redis, Nginx, and development tools       #
+# multi-PHP support, MySQL, Redis, Nginx, and development tools        #
 ########################################################################
 
 ########################################################################

@@ -125,6 +125,7 @@ add_mysql_service() {
     container_name: mysql
     restart: unless-stopped
     hostname: mysql
+    user: "${USER_UID}:${USER_GID}"
     ports:
       - "\${MYSQL_PORT}:3306"
     environment:
@@ -158,13 +159,14 @@ add_redis_service() {
         cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
 
   ####################################################################
-  #                     Redis Cache                                 #
+  #                     Redis Cache                                  #
   ####################################################################
   redis:
     image: redis:alpine
     container_name: redis
     restart: unless-stopped
     hostname: redis
+    user: "${USER_UID}:${USER_GID}"
     ports:
       - "\${REDIS_PORT}:6379"
     volumes:
@@ -175,6 +177,10 @@ add_redis_service() {
       - laravel-docker-devenv-network
     environment:
       - TZ=\${TZ}
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -194,7 +200,7 @@ add_mailhog_service() {
         cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
 
   ####################################################################
-  #                     MailHog (Email Testing)                     #
+  #                     MailHog (Email Testing)                      #
   ####################################################################
   mailhog:
     image: mailhog/mailhog:latest
@@ -227,7 +233,7 @@ add_volumes() {
     cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
 
 ########################################################################
-#              Conditional Volumes (auto-generated)                   #
+#              Conditional Volumes (auto-generated)                    #
 ########################################################################
 volumes:
 EOF
@@ -257,59 +263,6 @@ EOF
     fi
 }
 
-# Add footer with additional configurations
-generate_footer() {
-    log "Adding additional configurations..."
-
-    cat >> "$DOCKER_COMPOSE_OVERRIDE" <<EOF
-
-########################################################################
-#              Additional Development Services                         #
-########################################################################
-
-  # Uncomment below to add additional services as needed
-
-  # Elasticsearch (for search functionality)
-  # elasticsearch:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
-  #   container_name: elasticsearch
-  #   environment:
-  #     - discovery.type=single-node
-  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #   ports:
-  #     - "9200:9200"
-  #   networks:
-  #     - laravel-docker-devenv-network
-
-  # MinIO (S3-compatible storage)
-  # minio:
-  #   image: minio/minio:latest
-  #   container_name: minio
-  #   command: server /data --console-address ":9001"
-  #   ports:
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #   environment:
-  #     MINIO_ROOT_USER: minioadmin
-  #     MINIO_ROOT_PASSWORD: minioadmin
-  #   volumes:
-  #     - minio-data:/data
-  #   networks:
-  #     - laravel-docker-devenv-network
-
-########################################################################
-#              Additional Volumes                                      #
-########################################################################
-
-# Additional volumes for extra services
-# volumes:
-  # minio-data:
-  #   driver: local
-  # elasticsearch-data:
-  #   driver: local
-EOF
-}
-
 # Main function
 main() {
     print_banner "Laravel Docker Development Environment - Service Generator v2.1"
@@ -323,7 +276,6 @@ main() {
     add_redis_service
     add_mailhog_service
     add_volumes
-    generate_footer
 
     success "Docker Compose override file generated successfully!"
     log "Generated file: $DOCKER_COMPOSE_OVERRIDE"
