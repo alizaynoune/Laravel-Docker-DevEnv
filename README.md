@@ -291,10 +291,10 @@ sites:
 | `USER_NAME` | Container username | `docker` |
 | `USER_PASSWORD` | Container password | `docker` |
 | `DEFAULT_PHP` | Default PHP version | `8.3` |
-| `ENABLE_MYSQL` | Enable MySQL service | `true` |
-| `ENABLE_PHPMYADMIN` | Enable PHPMyAdmin | `true` |
-| `ENABLE_REDIS` | Enable Redis service | `true` |
-| `ENABLE_MAILHOG` | Enable MailHog service | `true` |
+| `ENABLE_MYSQL` | Enable MySQL service | `false` |
+| `ENABLE_PHPMYADMIN` | Enable PHPMyAdmin | `false` |
+| `ENABLE_REDIS` | Enable Redis service | `false` |
+| `ENABLE_MAILHOG` | Enable MailHog service | `false` |
 | `MYSQL_ROOT_PASSWORD` | MySQL root password | `root` |
 | `MYSQL_DATABASE` | Default database | `laravel` |
 | `WORKSPACE_SSH_PORT` | SSH port for workspace | `2222` |
@@ -404,12 +404,7 @@ sudo systemctl stop nginx
    grep myapp.local /etc/hosts
    ```
 
-2. Verify sitesMap.yaml syntax:
-   ```bash
-   make logs nginx
-   ```
-
-3. Ensure document root exists:
+2. Ensure document root exists:
    ```bash
    ls -la ${APP_DIR}/myapp/public
    ```
