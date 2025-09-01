@@ -6,3 +6,6 @@ docker/db/mysql/data/*
 !docker/db/mysql/data/.gitkeep
 docker/db/redis/data/*
 !docker/db/redis/data/.gitkeep
+docker/supervisor/conf.d/*.conf
+!docker/supervisor/conf.d/nginx.conf
+!docker/supervisor/conf.d/php-fpm.conf

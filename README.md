@@ -1,250 +1,251 @@
-# Laravel Docker Development Environment v2.0
+# 🐋 Laravel Docker Development Environment
 
 <div align="center">
-  <img src="https://img.shields.io/badge/PHP-7.0%20to%208.3-blue" alt="PHP Versions"/>
-  <img src="https://img.shields.io/badge/MySQL-8.0-orange" alt="MySQL"/>
-  <img src="https://img.shields.io/badge/Nginx-Latest-green" alt="Nginx"/>
-  <img src="https://img.shields.io/badge/Redis-Alpine-red" alt="Redis"/>
-  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License"/>
+
+![Laravel Docker DevEnv](https://img.shields.io/badge/Laravel-Docker-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP Versions](https://img.shields.io/badge/PHP-7.0%20to%208.3-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-Alpine-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Latest-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![GitHub Stars](https://img.shields.io/github/stars/alizaynoune/Laravel-Docker-DevEnv?style=for-the-badge)](https://github.com/alizaynoune/Laravel-Docker-DevEnv/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/alizaynoune/Laravel-Docker-DevEnv?style=for-the-badge)](https://github.com/alizaynoune/Laravel-Docker-DevEnv/issues)
+
+**A Professional, Feature-Rich Docker Development Stack for Laravel**
+
+*Streamline your Laravel development with multi-PHP support, modern tooling, and zero-configuration setup*
+
 </div>
 
-## 🚀 Overview
+---
 
-A professional, feature-rich Docker environment for Laravel development with comprehensive multi-PHP support (7.0-8.3), MySQL, Redis, Nginx, and development tools. Designed for seamless local development with maximum flexibility and productivity.
+## 🌟 Overview
+
+The Laravel Docker Development Environment is a comprehensive, production-ready Docker stack designed specifically for Laravel developers. Whether you're maintaining legacy applications on PHP 7.x or building cutting-edge projects with PHP 8.3, this environment provides everything you need in a single, unified workspace.
+
+### 🎯 Why Choose This Environment?
+
+- **🔄 Zero Configuration**: Get up and running in under 5 minutes
+- **🐘 Multi-PHP Ready**: All PHP versions (7.0-8.3) in one container
+- **🚀 Performance Optimized**: Designed for speed and efficiency
+- **📦 Modular Architecture**: Enable only the services you need
+- **🛠️ Developer-Focused**: Built by developers, for developers
+
+---
 
 ## ✨ Key Features
 
-### 🐘 Multi-PHP Support
+<table>
+<tr>
+<td width="50%" valign="top">
 
--   **All PHP versions**: 7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3
--   **Single workspace container** with all PHP versions installed
--   **Easy version switching** with simple commands (`php70`, `php81`, etc.)
--   **Per-project PHP versions** via sitesMap.yaml configuration
+### 🐘 **Multi-PHP Support**
+- **Complete PHP stack**: 7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3
+- **Instant switching**: Change PHP versions with simple commands
+- **Per-project configuration**: Different PHP versions for different projects
+- **Extension support**: All common Laravel extensions pre-installed
 
-### 🌐 Web Server & Networking
+### 🌐 **Web Server & SSL**
+- **Nginx**: High-performance web server
+- **Auto-configuration**: Sites generated from YAML config
+- **SSL certificates**: Self-signed certificates for HTTPS development
+- **Multi-domain**: Handle multiple projects simultaneously
 
--   **Nginx** with automatic site generation from sitesMap.yaml
--   **SSL support** with self-signed certificates
--   **Multi-domain support** for different projects
--   **Laravel-optimized** configurations
+</td>
+<td width="50%" valign="top">
 
-### 🗄️ Database & Cache
+### 🗄️ **Database & Caching**
+- **MySQL 8.0**: Latest MySQL with optimized settings
+- **PHPMyAdmin**: Web-based database management
+- **Redis**: Advanced caching and session storage
+- **Persistent storage**: Data survives container restarts
 
--   **MySQL 8.0** with persistent data storage
--   **PHPMyAdmin** web interface (localhost:8080)
--   **Redis** for caching and sessions
--   **Automatic database connections** from containers
+### 🛠️ **Development Tools**
+- **Modern terminal**: Zsh with Oh My Zsh
+- **Package managers**: Composer, NPM, Yarn pre-installed
+- **Email testing**: MailHog for email development
+- **SSH access**: Full remote development support
 
-### 🛠️ Development Tools
+</td>
+</tr>
+</table>
 
--   **Workspace container** with Zsh, Oh My Zsh, and development tools
--   **SSH access** to containers
--   **Composer** and **Node.js/NPM/Yarn** pre-installed
--   **Git** and development utilities
--   **MailHog** for email testing (localhost:8025)
+---
 
-### ⚡ Advanced Features
+## 🚀 Quick Start Guide
 
--   **Automatic service generation** based on your projects
--   **Health checks** for all services
--   **Resource limits** and optimization
--   **Hot reloading** and file watching support
--   **Supervisor** for process management
+### Prerequisites
 
-## 📋 System Requirements
+Ensure you have these installed:
+- 🐋 [Docker Engine](https://docs.docker.com/get-docker/) 20.10+
+- 🔧 [Docker Compose](https://docs.docker.com/compose/install/) 2.0+
+- 🛠️ Make utility (`sudo apt install make` on Ubuntu)
+- 📦 Git
 
--   **Docker Engine** 20.10+
--   **Docker Compose** 2.0+
--   **Make** utility
--   **Git**
--   4GB+ RAM recommended
--   10GB+ disk space
-
-## 🚀 Quick Start
-
-### 1. Clone the Repository
+### 1️⃣ Clone & Setup
 
 ```bash
+# Clone the repository
 git clone https://github.com/alizaynoune/Laravel-Docker-DevEnv.git
 cd Laravel-Docker-DevEnv
-```
 
-### 2. Initialize the Environment
-
-```bash
+# Initialize environment (creates .env and sitesMap.yaml)
 make install
 ```
 
-This command:
-
--   Creates `.env` file from `env.example`
--   Creates `sitesMap.yaml` from `sitesMap.example.yaml`
--   Creates necessary data directories
-
-### 3. Configure Your Environment
+### 2️⃣ Configure Your Environment
 
 #### Edit `.env` file:
-
 ```bash
 nano .env
 ```
 
-Key settings to configure:
-
+**Essential settings:**
 ```env
-# Your projects directory
+# Your Laravel projects directory
 APP_DIR=${HOME}/Code
 
-# User settings
-USER_NAME=docker
-
-# Optional Services (enable/disable as needed)
+# Services (enable/disable as needed)
 ENABLE_MYSQL=true
 ENABLE_PHPMYADMIN=true
 ENABLE_REDIS=true
 ENABLE_MAILHOG=true
 
-# Database settings
+# Database credentials
 MYSQL_ROOT_PASSWORD=root
 MYSQL_DATABASE=laravel
+MYSQL_USERNAME=docker
+MYSQL_PASSWORD=docker
+
+# Default PHP version
+DEFAULT_PHP=8.3
 ```
 
-#### Edit `sitesMap.yaml`:
-
+#### Configure your sites in `sitesMap.yaml`:
 ```bash
 nano sitesMap.yaml
 ```
 
-Configure your Laravel projects:
-
+**Example configuration:**
 ```yaml
 sites:
-    # Modern Laravel with PHP 8.2
+    # Modern Laravel 10+ application
     - map: myapp.local
       to: myapp/public
-      php: "8.2"
+      php: "8.3"
 
-    # Legacy project with PHP 7.4
-    - map: legacy.local
+    # Legacy application
+    - map: legacy-app.local
       to: legacy-project/public
       php: "7.4"
+
+    # API project
+    - map: api.local
+      to: api-service/public
+      php: "8.2"
 ```
 
-### 4. Start the Environment
+### 3️⃣ Start the Environment
 
 ```bash
+# Generate services and start containers
 make up
 ```
 
-### 5. Add Domains to Hosts File
+### 4️⃣ Configure Local Domains
 
-Add your configured domains to `/etc/hosts`:
-
+Add your domains to `/etc/hosts`:
 ```bash
-echo "127.0.0.1 myapp.local legacy.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 myapp.local legacy-app.local api.local" | sudo tee -a /etc/hosts
 ```
 
-### 6. Access Your Environment
+### 5️⃣ Access Your Environment
 
--   **Your Laravel apps**: https://myapp.local
--   **PHPMyAdmin**: http://localhost:8080
--   **MailHog**: http://localhost:8025
--   **Workspace SSH**: `ssh docker@localhost -p 2222`
+🌐 **Web Applications:**
+- Your apps: `http://myapp.local`, `http://legacy-app.local`
+- PHPMyAdmin: `http://phpmyadmin.local` (if configured)
+
+🛠️ **Development Tools:**
+- MailHog: `http://localhost:8025`
+- Workspace SSH: `ssh docker@localhost -p 2222`
+
+**🎉 You're ready to develop!**
+
+---
 
 ## 📖 Usage Guide
 
-### 🖥️ Accessing the Workspace
+### 🖥️ Workspace Access
 
-The workspace container is your main development environment with all PHP versions:
+The workspace container is your main development environment:
 
 ```bash
-# Access workspace container
+# Primary access method
 make workspace
 
 # Alternative SSH access
-make ssh
-# or
 ssh docker@localhost -p 2222
+
+# Execute commands directly
+make exec workspace "php artisan --version"
 ```
 
 ### 🐘 PHP Version Management
 
-Inside the workspace container, easily switch between PHP versions:
+Switch between PHP versions instantly:
 
 ```bash
-# Switch to different PHP versions
+# Inside the workspace container
 php70    # Switch to PHP 7.0
 php74    # Switch to PHP 7.4
 php81    # Switch to PHP 8.1
 php82    # Switch to PHP 8.2
 php83    # Switch to PHP 8.3
 
-# Check current PHP version
+# Check current version
 php --version
 
-# Show all available versions
+# List all available versions
 php-versions
 ```
 
-### 🆕 Creating Laravel Projects
-
-Use the built-in helper to create new Laravel projects:
+### 🛠️ Container Management
 
 ```bash
-# Create new Laravel project with specific PHP version
-laravel-new myproject 8.2
+# Core commands
+make up              # Start all services
+make down            # Stop and remove containers
+make restart         # Restart all containers
+make status          # Show detailed status
+make logs            # Show all logs
+make logs mysql      # Show specific service logs
 
-# Create with default PHP version
-laravel-new myproject
-```
-
-### 🎛️ Container Management
-
-```bash
-# Start all services
-make up
-
-# Stop all services
-make down
-
-# Restart specific service
-make restart nginx
-
-# View logs
-make logs
-make logs nginx  # specific service
-
-# Check status
-make status
-
-# Access different containers
-make workspace   # Main development environment
-make mysql      # MySQL console
-make redis      # Redis console
+# Service access
+make workspace       # Access main development environment
+make mysql          # MySQL console
+make redis          # Redis console
 ```
 
 ### 🗄️ Database Operations
 
 ```bash
-# Access MySQL console
+# MySQL console access
 make mysql
 
-# From workspace, connect to MySQL
-mysql -h mysql -u docker -pdocker laravel
+# Connect from workspace
+mysql -h mysql -u docker -p
 
-# PHPMyAdmin web interface
-# http://localhost:8080
+# Database management via PHPMyAdmin
+# http://phpmyadmin.local (configure in sitesMap.yaml)
 ```
 
 ### 📧 Email Testing with MailHog
 
-MailHog captures all emails sent from your Laravel applications:
+Perfect for testing email functionality:
 
--   **SMTP Settings**: Host: `mailhog`, Port: `1025`
--   **Web Interface**: http://localhost:8025
-
-Configure in your Laravel `.env`:
-
+**Laravel configuration (`.env`):**
 ```env
 MAIL_MAILER=smtp
 MAIL_HOST=mailhog
@@ -254,222 +255,449 @@ MAIL_PASSWORD=null
 MAIL_ENCRYPTION=null
 ```
 
-## ⚙️ Configuration
+**Access:** http://localhost:8025
 
-### 🌐 Site Configuration (sitesMap.yaml)
+---
+
+## ⚙️ Configuration Reference
+
+### 🌐 Sites Configuration (sitesMap.yaml)
 
 ```yaml
 sites:
-    - map: domain.local # Local domain name
-      to: project/public # Path relative to APP_DIR
-      php: "8.1" # PHP version (7.0-8.3)
+    - map: domain.local      # Local domain (add to /etc/hosts)
+      to: project/public     # Path relative to APP_DIR
+      php: "8.3"            # PHP version to use
+
+    # Multiple domains for same project
+    - map: app.local
+      to: myapp/public
+      php: "8.2"
+
+    - map: www.app.local
+      to: myapp/public
+      php: "8.2"
 ```
 
 **Supported PHP Versions:**
+`7.0` • `7.1` • `7.2` • `7.3` • `7.4` • `8.0` • `8.1` • `8.2` • `8.3`
 
--   "7.0", "7.1", "7.2", "7.3", "7.4"
--   "8.0", "8.1", "8.2", "8.3"
+### 🔧 Environment Variables (.env)
 
-### 📁 Directory Structure
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `APP_DIR` | Host directory containing your projects | `${HOME}/Code` |
+| `DESTINATION_DIR` | Container mount point | `/var/www` |
+| `USER_NAME` | Container username | `docker` |
+| `USER_PASSWORD` | Container password | `docker` |
+| `DEFAULT_PHP` | Default PHP version | `8.3` |
+| `ENABLE_MYSQL` | Enable MySQL service | `true` |
+| `ENABLE_PHPMYADMIN` | Enable PHPMyAdmin | `true` |
+| `ENABLE_REDIS` | Enable Redis service | `true` |
+| `ENABLE_MAILHOG` | Enable MailHog service | `true` |
+| `MYSQL_ROOT_PASSWORD` | MySQL root password | `root` |
+| `MYSQL_DATABASE` | Default database | `laravel` |
+| `WORKSPACE_SSH_PORT` | SSH port for workspace | `2222` |
+| `TZ` | Timezone | `UTC` |
+
+### 📁 Project Structure
 
 ```
 Laravel-Docker-DevEnv/
-├── docker-compose.yml           # Main Docker Compose configuration
-├── docker-compose.override.yml  # Auto-generated optional services
-├── Makefile                     # Make commands for management
-├── .env                         # Environment variables
-├── sitesMap.yaml               # Site configurations
-├── docker/                     # Docker configurations
-│   ├── workspace.Dockerfile    # Multi-PHP workspace
-│   ├── nginx.Dockerfile        # Nginx web server configuration
-│   ├── nginx.Dockerfile        # Nginx with auto-config
-│   ├── nginx/                  # Nginx configurations
-│   ├── php/                    # PHP configurations
-│   ├── supervisor/             # Supervisor configurations
-│   └── scripts/                # Utility scripts
-└── scripts/                    # Management scripts
+├── 📄 README.md                     # This documentation
+├── 📄 docker-compose.yml           # Core services configuration
+├── 📄 docker-compose.override.yml  # Auto-generated optional services
+├── 📄 Makefile                     # Management commands
+├── 📄 .env                         # Environment configuration
+├── 📄 sitesMap.yaml               # Sites and domains configuration
+├── 📁 docker/                     # Docker configurations
+│   ├── 🐳 workspace.Dockerfile     # Multi-PHP workspace
+│   ├── 📁 nginx/                   # Nginx configurations
+│   ├── 📁 supervisor/              # Process management
+│   ├── 📁 scripts/                 # Utility scripts
+│   └── 📁 db/                      # Database configurations
+└── 📁 scripts/                    # Management scripts
+    ├── 📜 docker-compose-generator.sh
+    └── 📜 project-status.sh
 ```
 
-### 🔧 Advanced Configuration
+---
 
-#### Custom PHP Extensions
+## 🔍 Advanced Usage
+
+### 🎛️ Service Management
+
+Enable or disable services by modifying `.env`:
+
+```bash
+# Disable unnecessary services for lighter setup
+ENABLE_MYSQL=false
+ENABLE_PHPMYADMIN=false
+ENABLE_REDIS=true
+ENABLE_MAILHOG=true
+
+# Regenerate services
+make generate-services
+make up
+```
+
+### 🔧 Custom PHP Extensions
 
 Add extensions in `docker/workspace.Dockerfile`:
 
 ```dockerfile
-RUN apt-get install -y
+RUN apt-get install -y \
+    php8.3-extension-name \
+    php8.2-extension-name \
     php8.1-extension-name
-    php8.2-extension-name
 ```
 
-#### Custom Nginx Configuration
+### 🌐 Custom Nginx Configuration
 
-Modify `docker/nginx/nginx.conf` for custom web server settings.
+Modify `docker/nginx/nginx.conf` for advanced web server settings.
 
-#### Environment Variables
-
-Key `.env` variables:
-
-| Variable              | Description             | Default        |
-| --------------------- | ----------------------- | -------------- |
-| `APP_DIR`             | Your projects directory | `${HOME}/Code` |
-| `ENABLE_MYSQL`        | Enable MySQL service    | `true`         |
-| `ENABLE_PHPMYADMIN`   | Enable PHPMyAdmin       | `true`         |
-| `ENABLE_REDIS`        | Enable Redis service    | `true`         |
-| `ENABLE_MAILHOG`      | Enable MailHog service  | `true`         |
-| `DEFAULT_PHP`         | Default PHP version     | `8.1`          |
-| `MYSQL_ROOT_PASSWORD` | MySQL root password     | `root`         |
-| `MYSQL_DATABASE`      | Default database        | `laravel`      |
-
-## 🔍 Troubleshooting
-
-### 🐛 Common Issues
-
-#### Permission Issues
-
-If you encounter permission issues:
+### 📊 Monitoring & Status
 
 ```bash
-# Update .env with your actual UID/GID
-id  # Check your UID and GID
-# Edit .env file with correct values
+# Comprehensive project status
+make project-status
+
+# Container resource usage
+docker stats
+
+# Service health checks
+make status
 ```
 
-#### Port Conflicts
+---
 
-If ports are already in use:
+## 🚨 Troubleshooting
 
+### 🔧 Common Issues & Solutions
+
+<details>
+<summary><strong>🚫 Port Conflicts</strong></summary>
+
+**Problem:** Ports 80, 443, or 3306 are already in use.
+
+**Solution:**
 ```bash
 # Check what's using the ports
 sudo netstat -tulpn | grep :80
 sudo netstat -tulpn | grep :3306
 
 # Stop conflicting services
-sudo systemctl stop apache2  # If Apache is running
-sudo systemctl stop mysql    # If MySQL is running
+sudo systemctl stop apache2
+sudo systemctl stop mysql
+sudo systemctl stop nginx
 ```
+</details>
 
-#### Container Access Issues
+<details>
+<summary><strong>🌐 Site Not Loading</strong></summary>
 
+**Problem:** Your Laravel app shows 404 or doesn't load.
+
+**Solution:**
+1. Check `/etc/hosts` entry:
+   ```bash
+   grep myapp.local /etc/hosts
+   ```
+
+2. Verify sitesMap.yaml syntax:
+   ```bash
+   make logs nginx
+   ```
+
+3. Ensure document root exists:
+   ```bash
+   ls -la ${APP_DIR}/myapp/public
+   ```
+</details>
+
+<details>
+<summary><strong>🔐 Permission Issues</strong></summary>
+
+**Problem:** Permission denied errors.
+
+**Solution:**
 ```bash
-# Check container status
-make status
+# Check your user ID
+id
 
-# View container logs
-make logs workspace
-make logs nginx
+# Update .env with correct values
+USER_UID=$(id -u)
+USER_GID=$(id -g)
 
-# Restart problematic containers
-make restart nginx
+# Rebuild containers
+make build
+make up
 ```
+</details>
 
-#### Site Not Loading
+<details>
+<summary><strong>🐘 PHP Version Not Working</strong></summary>
 
-1. Check if domain is in `/etc/hosts`:
+**Problem:** PHP version switching fails.
 
-    ```bash
-    grep myapp.local /etc/hosts
-    ```
+**Solution:**
+```bash
+# Access workspace and check available versions
+make workspace
+php-versions
 
-2. Verify nginx configuration:
+# Manually switch version
+sudo update-alternatives --config php
+```
+</details>
 
-    ```bash
-    make logs nginx
-    ```
-
-3. Check sitesMap.yaml syntax:
-    ```bash
-    # Validate YAML syntax
-    python3 -c "import yaml; yaml.safe_load(open('sitesMap.yaml'))"
-    ```
-
-### 🔧 Reset Environment
+### 🔄 Complete Reset
 
 If you need to start fresh:
 
 ```bash
-# Complete reset
+# Nuclear option - removes everything
 make clean
 
-# Rebuild everything
+# Rebuild from scratch
 make build
 make up
 ```
 
-## 🎯 Development Workflow
+---
 
-### 📊 Typical Daily Workflow
+## 🎯 Development Workflows
 
-1. **Start your day:**
+### 📅 Daily Development Routine
 
-    ```bash
-    make up
-    make workspace
-    ```
+```bash
+# Morning startup
+make up
+make workspace
 
-2. **Work on projects:**
+# Work on your project
+cd /var/www/myproject
+php83  # Switch to PHP 8.3
+composer install
+php artisan migrate:fresh --seed
 
-    ```bash
-    cd /var/www/myproject
-    php82  # Switch to PHP 8.2
-    composer install
-    php artisan migrate
-    ```
+# Test with different PHP versions
+php74  # Switch to PHP 7.4 for compatibility testing
+vendor/bin/phpunit
 
-3. **Test different PHP versions:**
+# End of day (optional)
+exit
+make stop
+```
 
-    ```bash
-    php74  # Test with PHP 7.4
-    vendor/bin/phpunit
+### 🚀 New Project Setup
 
-    php82  # Test with PHP 8.2
-    vendor/bin/phpunit
-    ```
+```bash
+# Access workspace
+make workspace
 
-4. **End of day:**
-    ```bash
-    exit  # Exit workspace
-    make stop  # Optional: stop containers
-    ```
+# Create new Laravel project
+cd /var/www
+composer create-project laravel/laravel new-project
+cd new-project
 
-### 🚀 Best Practices
+# Set up environment
+cp .env.example .env
+php artisan key:generate
 
-1. **Use version control** for your projects in `APP_DIR`
-2. **Keep sitesMap.yaml** updated with your projects
-3. **Use specific PHP versions** for each project in sitesMap.yaml
-4. **Regular backups** of your database data
-5. **Monitor resource usage** with `make status`
+# Configure database connection
+php artisan migrate
+```
+
+### 🔄 Legacy Project Migration
+
+```bash
+# Clone your existing project to APP_DIR
+git clone https://github.com/your/legacy-project.git ${APP_DIR}/legacy-project
+
+# Add to sitesMap.yaml
+echo "
+    - map: legacy.local
+      to: legacy-project/public
+      php: \"7.4\"
+" >> sitesMap.yaml
+
+# Add to hosts file
+echo "127.0.0.1 legacy.local" | sudo tee -a /etc/hosts
+
+# Restart to apply changes
+make restart
+```
+
+### 🧪 Testing & Quality Assurance
+
+```bash
+# Inside workspace
+make workspace
+
+# Run tests across PHP versions
+php81
+composer test
+
+php82
+composer test
+
+php83
+composer test
+
+# Code quality
+composer run-script phpstan
+composer run-script phpcs
+```
+
+---
+
+## 📈 Performance & Optimization
+
+### 🚀 Performance Tips
+
+1. **Resource Allocation:**
+   ```bash
+   # Monitor resource usage
+   docker stats
+
+   # Adjust Docker Desktop resources if needed
+   # Recommended: 4GB RAM, 2 CPUs minimum
+   ```
+
+2. **Volume Optimization:**
+   - Use bind mounts for development (default setup)
+   - Consider named volumes for database data in production
+
+3. **Service Management:**
+   - Disable unused services in `.env`
+   - Use `make generate-services` after changes
+
+### 🔧 Container Optimization
+
+```bash
+# Remove unused Docker resources
+make prune
+
+# Check disk usage
+docker system df
+
+# Clean up everything (nuclear option)
+docker system prune -a --volumes
+```
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome contributions! Here's how you can help:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### 🛠️ Development Setup
 
-## 📄 License
+```bash
+# Fork the repository on GitHub
+git clone https://github.com/your-username/Laravel-Docker-DevEnv.git
+cd Laravel-Docker-DevEnv
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# Create feature branch
+git checkout -b feature/amazing-feature
 
-## 🆘 Support
+# Make your changes and test
+make up
+make workspace
 
--   **GitHub Issues**: [Report bugs or request features](https://github.com/alizaynoune/Laravel-Docker-DevEnv/issues)
--   **Documentation**: This README and inline code comments
--   **Community**: Share your experience and help others
+# Commit and push
+git commit -m "Add amazing feature"
+git push origin feature/amazing-feature
+```
+
+### 📋 Contribution Guidelines
+
+- **Bug Reports:** Use GitHub Issues with detailed reproduction steps
+- **Feature Requests:** Discuss in Issues before implementing
+- **Code Style:** Follow existing patterns and conventions
+- **Testing:** Ensure changes work across PHP versions
+- **Documentation:** Update README for new features
+
+### 🏆 Contributors
+
+Thanks to all contributors who have helped improve this project!
+
+---
+
+## 📄 License & Legal
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### 📜 MIT License Summary
+
+- ✅ **Commercial use**
+- ✅ **Modification**
+- ✅ **Distribution**
+- ✅ **Private use**
+- ❌ **Liability**
+- ❌ **Warranty**
+
+---
+
+## 🆘 Support & Community
+
+### 📞 Getting Help
+
+- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/alizaynoune/Laravel-Docker-DevEnv/issues)
+- 💡 **Feature Requests:** [GitHub Discussions](https://github.com/alizaynoune/Laravel-Docker-DevEnv/discussions)
+- 📖 **Documentation:** This README and inline code comments
+- 💬 **Community:** Share experiences and help others
+
+### 📊 Project Statistics
+
+![GitHub Stars](https://img.shields.io/github/stars/alizaynoune/Laravel-Docker-DevEnv?style=social)
+![GitHub Forks](https://img.shields.io/github/forks/alizaynoune/Laravel-Docker-DevEnv?style=social)
+![GitHub Contributors](https://img.shields.io/github/contributors/alizaynoune/Laravel-Docker-DevEnv)
+
+---
 
 ## 🎉 Acknowledgments
 
--   **Laravel** community for the amazing framework
--   **Docker** for containerization technology
--   **Nginx** for the robust web server
--   **PHP** community for the language evolution
--   All contributors who have helped improve this project
+Special thanks to:
+
+- 🚀 **Laravel Team** - For the amazing framework that powers modern PHP development
+- 🐋 **Docker Team** - For revolutionizing application containerization
+- 🌐 **Nginx Team** - For the high-performance web server
+- 🐘 **PHP Team** - For the continuous evolution of the language
+- 👥 **Open Source Community** - For countless tools and inspirations
+- 🙏 **All Contributors** - Who have helped improve this project
 
 ---
 
 <div align="center">
-  <strong>Happy Coding! 🚀</strong>
+
+## 🚀 Ready to Start Developing?
+
+### Get up and running in 5 minutes:
+
+```bash
+git clone https://github.com/alizaynoune/Laravel-Docker-DevEnv.git
+cd Laravel-Docker-DevEnv
+make install
+make up
+make workspace
+```
+
+<br>
+
+**⭐ Star this repo if it helped you!**
+
+**📢 Share with your team and colleagues**
+
+**🤝 Contribute to make it even better**
+
+<br>
+
+---
+
+*Built with ❤️ by developers, for developers*
+
+**Happy Coding! 🎯**
+
 </div>
