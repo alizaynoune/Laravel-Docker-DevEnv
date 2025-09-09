@@ -7,7 +7,6 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?style=for-the-badge&logo=nginx&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-Alpine-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Latest-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/alizaynoune/Laravel-Docker-DevEnv?style=for-the-badge)](https://github.com/alizaynoune/Laravel-Docker-DevEnv/stargazers)
@@ -224,8 +223,8 @@ make logs mysql      # Show specific service logs
 
 # Service access
 make workspace       # Access main development environment
-make mysql          # MySQL console
-make redis          # Redis console
+make mysql           # MySQL console
+make redis           # Redis console
 ```
 
 ### 🗄️ Database Operations
@@ -265,9 +264,9 @@ MAIL_ENCRYPTION=null
 
 ```yaml
 sites:
-    - map: domain.local      # Local domain (add to /etc/hosts)
-      to: project/public     # Path relative to APP_DIR
-      php: "8.3"            # PHP version to use
+    - map: domain.local         # Local domain (add to /etc/hosts)
+      to: project/public        # Path relative to APP_DIR
+      php: "8.3"                # PHP version to use
 
     # Multiple domains for same project
     - map: app.local
@@ -304,19 +303,19 @@ sites:
 
 ```
 Laravel-Docker-DevEnv/
-├── 📄 README.md                     # This documentation
+├── 📄 README.md                    # This documentation
 ├── 📄 docker-compose.yml           # Core services configuration
 ├── 📄 docker-compose.override.yml  # Auto-generated optional services
 ├── 📄 Makefile                     # Management commands
 ├── 📄 .env                         # Environment configuration
-├── 📄 sitesMap.yaml               # Sites and domains configuration
-├── 📁 docker/                     # Docker configurations
+├── 📄 sitesMap.yaml                # Sites and domains configuration
+├── 📁 docker/                      # Docker configurations
 │   ├── 🐳 workspace.Dockerfile     # Multi-PHP workspace
 │   ├── 📁 nginx/                   # Nginx configurations
 │   ├── 📁 supervisor/              # Process management
 │   ├── 📁 scripts/                 # Utility scripts
 │   └── 📁 db/                      # Database configurations
-└── 📁 scripts/                    # Management scripts
+└── 📁 scripts/                     # Management scripts
     ├── 📜 docker-compose-generator.sh
     └── 📜 project-status.sh
 ```
