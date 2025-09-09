@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 # Configuration variables
 DESTINATION_DIR=${DESTINATION_DIR:-/var/www}
-SITES_MAP_FILE="${DESTINATION_DIR}/sitesMap.yaml"
+SITES_MAP_FILE="/etc/nginx/sitesMap.yaml"
 SITES_AVAILABLE_DIR="/etc/nginx/sites-available"
 SITES_ENABLED_DIR="/etc/nginx/sites-enabled"
 ENABLE_PHPMYADMIN=${ENABLE_PHPMYADMIN:-false}
