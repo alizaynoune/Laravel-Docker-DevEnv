@@ -3,7 +3,7 @@
 # Oh My Zsh configuration
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"
-plugins=(git docker composer)
+plugins=(git aliases colorize cp history node npm nvm composer laravel)
 source $ZSH/oh-my-zsh.sh
 
 # PHP Version Management
@@ -27,14 +27,6 @@ alias php-versions='php-manager.sh versions'
 alias machine-status='machine-status.sh'
 alias php-manager='sudo php-manager.sh'
 
-# Development aliases
-alias ll='ls -la'
-alias la='ls -A'
-alias l='ls -CF'
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-
 # Laravel aliases
 alias art='php artisan'
 alias tinker='php artisan tinker'
@@ -48,19 +40,6 @@ alias nginx-test='sudo nginx -t'
 alias nginx-status='sudo supervisorctl status nginx'
 alias nginx-restart='sudo supervisorctl restart nginx'
 alias nginx-sites='sudo /usr/local/bin/generate-sites.sh'
-
-# Composer aliases
-alias comp='composer'
-alias compi='composer install'
-alias compu='composer update'
-alias compr='composer require'
-
-# Git aliases (if not already set by oh-my-zsh)
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git log --oneline'
 
 # PHP version switcher function
 phpv() {

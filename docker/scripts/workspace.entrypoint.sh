@@ -68,7 +68,7 @@ setup_nginx() {
     setup_phpmyadmin
 
     # Generate nginx site configurations if sitesMap.yaml exists
-    if [ -f "/var/www/sitesMap.yaml" ]; then
+    if [ -f "/etc/nginx/sitesMap.yaml" ]; then
         log "Generating nginx site configurations from sitesMap.yaml..."
         /usr/local/bin/generate-sites.sh
         success "Nginx site configurations generated"

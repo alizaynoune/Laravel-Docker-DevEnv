@@ -19,10 +19,6 @@ x-app-args: &default-args
   WORKSPACE_SSH_PORT: ${WORKSPACE_SSH_PORT:-2222}
   DEFAULT_PHP: ${DEFAULT_PHP:-8.3}
 
-x-common-volumes: &common-volumes
-  - app-data:${DESTINATION_DIR:-/var/www}:rw
-  - ./sitesMap.yaml:/etc/nginx/sitesMap.yaml:ro
-
 x-network: &default-network
   networks:
     - laravel-docker-devenv-network
@@ -43,9 +39,10 @@ services:
     restart: unless-stopped
     hostname: workspace
     volumes:
-      - app-data:${DESTINATION_DIR}:rw
-      - ./docker/supervisor/conf.d:/etc/supervisor/conf.d:rw
-      - ./docker/scripts/workspace.entrypoint.sh:/entrypoint.sh:ro
+        - app-data:${DESTINATION_DIR}:rw
+        - ./docker/supervisor/conf.d:/etc/supervisor/conf.d:rw
+        - ./docker/scripts/workspace.entrypoint.sh:/entrypoint.sh:ro
+        - ./sitesMap.yaml:/etc/nginx/sitesMap.yaml:ro
     working_dir: ${DESTINATION_DIR}
     <<: *default-network
     environment:

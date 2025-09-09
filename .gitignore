@@ -2,10 +2,10 @@
 .env
 sitesMap.yaml
 docker-compose.override.yml
-docker/db/mysql/data/*
-!docker/db/mysql/data/.gitkeep
-docker/db/redis/data/*
-!docker/db/redis/data/.gitkeep
+after-install.sh
+docker/db/*
+!docker/db/mysql/my.cnf
+!docker/db/redis/redis.conf
 docker/supervisor/conf.d/*.conf
 !docker/supervisor/conf.d/nginx.conf
 !docker/supervisor/conf.d/php-fpm.conf

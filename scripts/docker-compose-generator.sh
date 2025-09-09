@@ -12,6 +12,9 @@ ROOT_DIR=$(realpath "$SCRIPT_DIR/..")
 SITES_MAP_FILE="$ROOT_DIR/sitesMap.yaml"
 DOCKER_COMPOSE_OVERRIDE="$ROOT_DIR/docker-compose.override.yml"
 ENV_FILE="$ROOT_DIR/.env"
+# Determine the Docker Compose command to use (docker-compose or docker compose)
+DOCKER_COMPOSE_CMD=$(command -v docker-compose >/dev/null 2>&1 && echo "docker-compose" || echo "docker compose")
+
 
 # Colors for output
 RED='\033[0;31m'
@@ -125,7 +128,6 @@ add_mysql_service() {
     container_name: mysql
     restart: unless-stopped
     hostname: mysql
-    user: "${USER_UID}:${USER_GID}"
     ports:
       - "\${MYSQL_PORT}:3306"
     environment:
@@ -166,7 +168,6 @@ add_redis_service() {
     container_name: redis
     restart: unless-stopped
     hostname: redis
-    user: "${USER_UID}:${USER_GID}"
     ports:
       - "\${REDIS_PORT}:6379"
     volumes:
@@ -282,7 +283,7 @@ main() {
 
     # Validate generated docker-compose file
     log "Validating generated Docker Compose configuration..."
-    if docker-compose -f docker-compose.yml -f docker-compose.override.yml config > /dev/null 2>&1; then
+    if $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.override.yml config > /dev/null 2>&1; then
         success "Docker Compose configuration is valid!"
     else
         warning "Docker Compose configuration validation failed. Please check the generated file."
