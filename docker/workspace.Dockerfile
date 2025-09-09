@@ -161,7 +161,7 @@ RUN usermod -aG ${USER_GROUP} ${USER_NAME} && \
 USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
 
-RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 # Switch back to root for system configuration
 USER root
@@ -276,6 +276,13 @@ RUN chown ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
     chmod +x /usr/local/bin/php-manager.sh && \
     chmod +x /usr/local/bin/machine-status.sh
 
+# Run after-install.sh if it exists
+COPY after-install.sh /after-install.sh
+RUN if [ -f /after-install.sh ]; then \
+    chmod +x /after-install.sh && \
+    /after-install.sh && \
+    rm /after-install.sh; \
+fi
 
 # Expose SSH, HTTP and HTTPS ports
 EXPOSE 22 80 443

@@ -97,6 +97,15 @@ install:
 	else \
 		echo -e "$(YELLOW)🗺️  sitesMap.yaml file already exists$(DEFAULT)"; \
 	fi
+	@if [ ! -f after-install.sh ]; then \
+		echo -e "$(YELLOW)⚙️  Creating after-install.sh file from example...$(DEFAULT)"; \
+		echo "#!/bin/bash" >> after-install.sh; \
+		echo "# Add any custom setup commands you want to run after installation" >> after-install.sh; \
+		chmod +x after-install.sh; \
+		echo -e "$(GREEN)✅ Created after-install.sh file. You can add custom setup commands.$(DEFAULT)"; \
+	else \
+		echo -e "$(YELLOW)⚙️  after-install.sh file already exists$(DEFAULT)"; \
+	fi
 # 	add method or alias to .zshrc for run the make command from any location
 
 	@echo -e "$(YELLOW)📁 Creating data directories...$(DEFAULT)"
