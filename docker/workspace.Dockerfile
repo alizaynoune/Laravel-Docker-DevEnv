@@ -69,38 +69,47 @@ RUN apt-get install -y \
     php7.0-fpm php7.0-cli php7.0-common php7.0-mysql php7.0-zip php7.0-gd \
     php7.0-mbstring php7.0-curl php7.0-xml php7.0-bcmath php7.0-json \
     php7.0-intl php7.0-soap php7.0-sqlite3 php7.0-xdebug \
+    php7.0-redis \
     # PHP 7.1
     php7.1-fpm php7.1-cli php7.1-common php7.1-mysql php7.1-zip php7.1-gd \
     php7.1-mbstring php7.1-curl php7.1-xml php7.1-bcmath php7.1-json \
     php7.1-intl php7.1-soap php7.1-sqlite3 php7.1-xdebug \
+    php7.1-redis \
     # PHP 7.2
     php7.2-fpm php7.2-cli php7.2-common php7.2-mysql php7.2-zip php7.2-gd \
     php7.2-mbstring php7.2-curl php7.2-xml php7.2-bcmath php7.2-json \
     php7.2-intl php7.2-soap php7.2-sqlite3 php7.2-xdebug \
+    php7.2-redis \
     # PHP 7.3
     php7.3-fpm php7.3-cli php7.3-common php7.3-mysql php7.3-zip php7.3-gd \
     php7.3-mbstring php7.3-curl php7.3-xml php7.3-bcmath php7.3-json \
     php7.3-intl php7.3-soap php7.3-sqlite3 php7.3-xdebug \
+    php7.3-redis \
     # PHP 7.4
     php7.4-fpm php7.4-cli php7.4-common php7.4-mysql php7.4-zip php7.4-gd \
     php7.4-mbstring php7.4-curl php7.4-xml php7.4-bcmath php7.4-json \
     php7.4-intl php7.4-soap php7.4-sqlite3 php7.4-xdebug \
+    php7.4-redis \
     # PHP 8.0
     php8.0-fpm php8.0-cli php8.0-common php8.0-mysql php8.0-zip php8.0-gd \
     php8.0-mbstring php8.0-curl php8.0-xml php8.0-bcmath \
     php8.0-intl php8.0-soap php8.0-sqlite3 php8.0-xdebug \
+    php8.0-redis \
     # PHP 8.1
     php8.1-fpm php8.1-cli php8.1-common php8.1-mysql php8.1-zip php8.1-gd \
     php8.1-mbstring php8.1-curl php8.1-xml php8.1-bcmath \
     php8.1-intl php8.1-soap php8.1-sqlite3 php8.1-xdebug \
+    php8.1-redis \
     # PHP 8.2
     php8.2-fpm php8.2-cli php8.2-common php8.2-mysql php8.2-zip php8.2-gd \
     php8.2-mbstring php8.2-curl php8.2-xml php8.2-bcmath \
     php8.2-intl php8.2-soap php8.2-sqlite3 php8.2-xdebug \
+    php8.2-redis \
     # PHP 8.3
     php8.3-fpm php8.3-cli php8.3-common php8.3-mysql php8.3-zip php8.3-gd \
     php8.3-mbstring php8.3-curl php8.3-xml php8.3-bcmath \
     php8.3-intl php8.3-soap php8.3-sqlite3 php8.3-xdebug \
+    php8.3-redis \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20 LTS
