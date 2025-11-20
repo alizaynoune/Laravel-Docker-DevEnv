@@ -149,9 +149,9 @@ RUN if [ "$ENABLE_MYSQL" = "true" ] && [ "$ENABLE_PHPMYADMIN" = "true" ]; then \
     chown www-data:www-data /usr/share/phpmyadmin/tmp && \
     chmod 777 /usr/share/phpmyadmin/tmp && \
     echo "PHPMyAdmin installed successfully"; \
-else \
+    else \
     echo "PHPMyAdmin installation skipped (ENABLE_MYSQL=$ENABLE_MYSQL, ENABLE_PHPMYADMIN=$ENABLE_PHPMYADMIN)"; \
-fi
+    fi
 
 # Create user with sudo privileges (using default UID/GID)
 RUN groupadd -g ${USER_GID} ${USER_GROUP} && \
@@ -170,7 +170,11 @@ RUN usermod -aG ${USER_GROUP} ${USER_NAME} && \
 USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
 
+# Install Oh My Zsh unattended
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Install Laravel Installer globally
+RUN composer global require "laravel/installer"
 
 # Switch back to root for system configuration
 USER root
@@ -202,7 +206,7 @@ RUN update-alternatives --install /usr/bin/php php /usr/bin/php7.0 70 && \
 RUN if ! update-alternatives --query php | grep -q "Value: /usr/bin/php${DEFAULT_PHP}"; then \
     echo "Invalid PHP version ${DEFAULT_PHP}, defaulting to 8.3"; \
     DEFAULT_PHP=8.3; \
-fi
+    fi
 # Set default PHP version
 RUN update-alternatives --set php /usr/bin/php${DEFAULT_PHP} && \
     echo "Default PHP version set to ${DEFAULT_PHP}"
@@ -285,13 +289,14 @@ RUN chown ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
     chmod +x /usr/local/bin/php-manager.sh && \
     chmod +x /usr/local/bin/machine-status.sh
 
-# Run after-install.sh if it exists
-COPY after-install.sh /after-install.sh
-RUN if [ -f /after-install.sh ]; then \
-    chmod +x /after-install.sh && \
-    /after-install.sh && \
-    rm /after-install.sh; \
-fi
+# Run after-install.sh if it exists in build context
+# Using wildcard pattern to make COPY optional (will copy nothing if file doesn't exist)
+COPY after-install.sh* /tmp/
+RUN if [ -f /tmp/after-install.sh ]; then \
+    chmod +x /tmp/after-install.sh && \
+    /tmp/after-install.sh && \
+    rm /tmp/after-install.sh; \
+    fi
 
 # Expose SSH, HTTP and HTTPS ports
 EXPOSE 22 80 443
