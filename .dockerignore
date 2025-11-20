@@ -1,0 +1,28 @@
+# Exclude database data directories
+docker/db/mysql/data/
+docker/db/redis/data/
+
+# Exclude git and IDE files
+.git/
+.gitignore
+.idea/
+
+# Exclude documentation
+README.md
+CHANGELOG.md
+LICENSE
+
+# Exclude compose files (not needed in build context)
+docker-compose.yml
+docker-compose.override.yml
+
+# Exclude environment files
+.env
+env.example
+
+# Exclude site configuration
+sitesMap.yaml
+sitesMap.example.yaml
+
+# Exclude scripts directory (not needed in build)
+scripts/
